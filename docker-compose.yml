@@ -1,0 +1,46 @@
+services:
+  db:
+    image: postgres:15-alpine
+    container_name: tenantguard_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: tenantguard
+      POSTGRES_PASSWORD: tenantguard_secret
+      POSTGRES_DB: tenantguard_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U tenantguard -d tenantguard_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: tenantguard_api
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=postgresql://tenantguard:tenantguard_secret@db:5432/tenantguard_db
+      - JWT_SECRET=secret123
+      - JWT_ALGORITHM=HS256
+      - UPLOAD_DIR=/app/uploads
+      - CHROMA_PERSIST_DIR=/app/chroma_data
+      - GEMINI_API_KEY=${GEMINI_API_KEY:-}
+      - GEMINI_MODEL=${GEMINI_MODEL:-gemini-1.5-flash}
+      - ENVIRONMENT=development
+    volumes:
+      - ./uploads:/app/uploads
+      - ./chroma_data:/app/chroma_data
+      - ./app:/app/app
+
+volumes:
+  postgres_data:

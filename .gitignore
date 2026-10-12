@@ -1,0 +1,24 @@
+# Environment & secrets
+.env
+*.env
+
+# Python bytecode & cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Application runtime storage
+uploads/
+chroma_data/
+*.db
+*.sqlite3
+
+# OS & Editor files
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
