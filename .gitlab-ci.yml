@@ -1,0 +1,134 @@
+# ==============================================================================
+# GitLab CI Pipeline — TenantGuard (v0)
+# DevSecOps Pipeline : SAST, SCA, Secrets, Build + Container Scan, DAST, SBOM
+#
+# NOTE: Cette version v0 est volontairement vulnérable.
+# Chaque scanner de sécurité est configuré pour bloquer (exit-code 1)
+# dès qu'une vulnérabilité ou anomalie critique/élevée est détectée.
+# Les jobs utilisent 'rules: - when: always' afin que chaque outil puisse
+# s'exécuter et remonter ses findings dans l'interface, tout en faisant
+# échouer l'étape correspondante et le statut global du pipeline.
+# ==============================================================================
+
+stages:
+  - sast
+  - sca
+  - secrets
+  - build
+  - dast
+  - report
+
+default:
+  interruptible: true
+
+# ------------------------------------------------------------------------------
+# 1. SAST (Static Application Security Testing) — Semgrep
+# Analyse statique du code source Python et Dockerfile.
+# 'semgrep ci' échoue nativement (exit code 1) sur les règles bloquantes.
+# ------------------------------------------------------------------------------
+sast:
+  stage: sast
+  image: semgrep/semgrep:latest
+  rules:
+    - when: always
+  script:
+    - echo "=== Lancement de l'analyse SAST avec Semgrep ==="
+    # 'semgrep ci' quitte automatiquement avec le code 1 en présence de findings bloquants
+    - semgrep ci --config auto
+
+# ------------------------------------------------------------------------------
+# 2. SCA (Software Composition Analysis) — pip-audit
+# Détection de CVEs connues dans les dépendances Python (requirements.txt).
+# Échoue avec exit code 1 si une vulnérabilité est trouvée.
+# ------------------------------------------------------------------------------
+sca:
+  stage: sca
+  image: python:3.11-slim
+  rules:
+    - when: always
+  script:
+    - echo "=== Lancement de l'audit des dépendances avec pip-audit ==="
+    - pip install --no-cache-dir pip-audit
+    - pip-audit -r requirements.txt
+
+# ------------------------------------------------------------------------------
+# 3. SECRETS — Gitleaks
+# Détection de secrets, clés d'API et mots de passe codés en dur dans le code.
+# Échoue avec exit code 1 dès qu'un secret est identifié.
+# ------------------------------------------------------------------------------
+secrets:
+  stage: secrets
+  image:
+    name: zricethezav/gitleaks:latest
+    entrypoint: [""]
+  rules:
+    - when: always
+  script:
+    - echo "=== Recherche de secrets avec Gitleaks ==="
+    - gitleaks detect --source=. --verbose --redact
+
+# ------------------------------------------------------------------------------
+# 4. BUILD & CONTAINER SCAN — Docker + Trivy
+# Construction de l'image Docker de l'API et scan de vulnérabilités avec Trivy.
+# Échoue avec exit code 1 en cas de vulnérabilité HIGH ou CRITICAL.
+# ------------------------------------------------------------------------------
+build:
+  stage: build
+  image: docker:24-cli
+  services:
+    - docker:24-dind
+  variables:
+    DOCKER_TLS_CERTDIR: ""
+  rules:
+    - when: always
+  script:
+    - echo "=== Construction de l'image Docker tenantguard-api ==="
+    - docker build -t tenantguard-api:latest .
+    - echo "=== Analyse de l'image Docker avec Trivy ==="
+    - docker run --rm -v /var/run/docker.sock:/var/run/docker.sock aquasec/trivy:latest image --severity CRITICAL,HIGH --exit-code 1 tenantguard-api:latest
+
+# ------------------------------------------------------------------------------
+# 5. DAST (Dynamic Application Security Testing) — OWASP ZAP Baseline
+# Démarrage de l'application via docker compose et scan dynamique de l'API.
+# Échoue avec exit code 1 en présence d'alertes ou faiblesses applicatives.
+# ------------------------------------------------------------------------------
+dast:
+  stage: dast
+  image: docker:24-cli
+  services:
+    - docker:24-dind
+  variables:
+    DOCKER_TLS_CERTDIR: ""
+  rules:
+    - when: always
+  script:
+    - echo "=== Démarrage de l'infrastructure TenantGuard (PostgreSQL + API) ==="
+    - docker compose up -d --build
+    - echo "=== Attente de la disponibilité du endpoint healthcheck ==="
+    - docker run --rm --network tenantguard_default curlimages/curl:latest sh -c "until curl -sf http://api:8000/health; do echo 'En attente de l\'API...'; sleep 3; done"
+    - echo "=== Lancement du scan DAST OWASP ZAP Baseline ==="
+    - docker run --rm --network tenantguard_default -t ghcr.io/zaproxy/zaproxy:stable zap-baseline.py -t http://api:8000
+  after_script:
+    - docker compose down -v || true
+
+# ------------------------------------------------------------------------------
+# 6. REPORT — Syft (Génération de SBOM)
+# Génère la nomenclature logicielle (Software Bill of Materials) au format standard
+# SPDX-JSON et la conserve en artifact téléchargeable.
+# ------------------------------------------------------------------------------
+report:
+  stage: report
+  image:
+    name: anchore/syft:latest
+    entrypoint: [""]
+  rules:
+    - when: always
+  script:
+    - echo "=== Génération du SBOM SPDX avec Syft ==="
+    - syft dir:. -o spdx-json=sbom.spdx.json
+  artifacts:
+    name: "sbom-$CI_COMMIT_SHORT_SHA"
+    when: always
+    paths:
+      - sbom.spdx.json
+    expire_in: 1 week
