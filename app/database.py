@@ -68,8 +68,7 @@ def init_db():
                 role="admin"
             )
             u3 = User(
-                id=3,
-                tenant_id=3,
+                tenant_id=t3.id,
                 username="charlie",
                 email="charlie@initech.com",
                 hashed_password=_hash_pwd("charlie123"),
@@ -79,6 +78,17 @@ def init_db():
             db.commit()
 
             logger.info("Seed completed: 3 tenants and 3 initial users created successfully.")
+
+        # Always synchronize PostgreSQL sequences to max(id) to prevent duplicate key errors on new inserts
+        if not DATABASE_URL.startswith("sqlite"):
+            from sqlalchemy import text
+            for table in ["tenants", "users", "documents"]:
+                try:
+                    db.execute(text(f"SELECT setval(pg_get_serial_sequence('{table}', 'id'), COALESCE((SELECT MAX(id) FROM {table}), 1));"))
+                    db.commit()
+                except Exception as seq_err:
+                    logger.debug(f"Could not sync sequence for {table}: {seq_err}")
+                    db.rollback()
     except Exception as e:
         logger.error(f"Error initializing or seeding database: {e}")
         db.rollback()
