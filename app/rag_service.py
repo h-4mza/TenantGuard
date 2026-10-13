@@ -138,17 +138,18 @@ class RAGService:
         except Exception as e:
             logger.warning(f"Error deleting chunks for doc {document_id}: {e}")
 
-    def retrieve(self, query: str, tenant_id: Optional[int] = None, n_results: int = 3) -> List[Dict[str, Any]]:
+    def retrieve(self, query: str, tenant_id: int, n_results: int = 3) -> List[Dict[str, Any]]:
         """
-        Retrieves relevant chunks from ChromaDB.
-        VULNERABILITY 4 (Cross-tenant leak):
-        - If tenant_id is provided, filters with where={"tenant_id": tenant_id}.
-        - If tenant_id is None, NO where filter is applied -> chunks from ALL tenants can be returned!
-        - The caller can also supply ANY tenant_id, enabling unauthorized cross-tenant vector retrieval.
+        Retrieves relevant chunks from ChromaDB strictly for the specified tenant.
+        REMEDIATION (FINDING-06):
+        - tenant_id is mandatory (must be a positive integer).
+        - Enforces where={"tenant_id": tenant_id} on all queries. Global searches without
+          tenant filtering are strictly prohibited.
         """
-        where_filter = None
-        if tenant_id is not None and tenant_id > 0:
-            where_filter = {"tenant_id": tenant_id}
+        if tenant_id is None or not isinstance(tenant_id, int) or tenant_id <= 0:
+            raise ValueError(f"A valid positive integer tenant_id is required for vector retrieval. Got: {tenant_id}")
+
+        where_filter = {"tenant_id": tenant_id}
 
         results = self.collection.query(
             query_texts=[query],

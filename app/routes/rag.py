@@ -16,12 +16,11 @@ router = APIRouter(prefix="/rag", tags=["RAG (Retrieval-Augmented Generation)"])
 # ------------------------------------------------------------------------------
 class RAGQueryRequest(BaseModel):
     query: str
-    tenant_id: Optional[int] = None
     top_k: Optional[int] = 3
 
 class RAGQueryResponse(BaseModel):
     query: str
-    tenant_id_queried: Optional[int]
+    tenant_id_queried: int
     retrieved_chunks: List[Dict[str, Any]]
     answer: str
 
@@ -38,11 +37,9 @@ def query_rag_knowledge_base(
     """
     Query the multi-tenant RAG knowledge base.
     
-    VULNERABILITY 4:
-    - Cross-Tenant Vector Leak: If `tenant_id` is passed, the search filters by that tenant,
-      allowing Alice (Tenant 1) to pass `tenant_id=2` and retrieve CyberDyne's documents.
-      If `tenant_id` is null, ChromaDB queries across ALL tenants simultaneously!
-    - Prompt Injection: The query is concatenated into the LLM prompt with zero input filtering.
+    REMEDIATION (FINDING-06):
+    - Client-provided tenant_id is eliminated.
+    - Tenant ID is strictly bound to current_user.tenant_id on the server.
     """
     if not payload.query or not payload.query.strip():
         raise HTTPException(
@@ -50,10 +47,10 @@ def query_rag_knowledge_base(
             detail="Query parameter cannot be empty."
         )
 
-    # VULNERABILITY: Blindly accept the client's tenant_id, without forcing current_user.tenant_id
-    filter_tenant_id = payload.tenant_id
+    # REMEDIATION (FINDING-06): Server-enforced tenant isolation
+    filter_tenant_id = current_user.tenant_id
 
-    # Retrieve chunks from ChromaDB
+    # Retrieve chunks from ChromaDB with mandatory tenant filter
     chunks = rag_service.retrieve(
         query=payload.query,
         tenant_id=filter_tenant_id,
@@ -64,8 +61,8 @@ def query_rag_knowledge_base(
     answer = rag_service.generate_response(query=payload.query, context_chunks=chunks)
 
     audit_logger.info(
-        f"[RAG_QUERY] user_id={current_user.id} (user_tenant={current_user.tenant_id}) "
-        f"queried_tenant={filter_tenant_id} query='{payload.query[:60]}' chunks_retrieved={len(chunks)}"
+        f"[RAG_QUERY] user_id={current_user.id} tenant_id={current_user.tenant_id} "
+        f"query='{payload.query[:60]}' chunks_retrieved={len(chunks)}"
     )
 
     return {
