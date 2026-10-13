@@ -22,8 +22,9 @@ Ce document consigne l'ensemble des corrections techniques implémentées dans l
 ### FINDING-01 & FINDING-08 : Clé JWT faible et secrets en dur dans les configurations
 * **Vulnérabilité :** `JWT_SECRET` utilisait une valeur par défaut de secours triviale (`secret123`), facilitant les attaques par force brute hors-ligne. De plus, `JWT_SECRET=secret123` et `POSTGRES_PASSWORD=tenantguard_secret` étaient codés en dur dans `docker-compose.yml` et exposés dans `.env.example`.
 * **Modifications techniques :**
-  - **`app/auth.py`** : Suppression de tout fallback par défaut. Au démarrage de l'application, validation stricte de `os.getenv("JWT_SECRET")` ; si le secret est absent ou inférieur à 32 caractères (256 bits), une exception fatale `RuntimeError` est levée, empêchant le serveur de démarrer dans un état non sécurisé.
-  - **`docker-compose.yml`** & **`.env.example`** : Remplacement des secrets codés en dur par des placeholders explicites (`CHANGE_ME_GENERATE_WITH_openssl_rand_hex_32`).
+  - **`app/auth.py`** : Suppression de tout fallback par défaut. Au démarrage de l'application, validation stricte de `os.getenv("JWT_SECRET")` ; si le secret est absent, inférieur à 32 caractères (256 bits), ou correspond à une chaîne de remplacement prédéfinie (`CHANGE_ME_*`), une exception fatale `RuntimeError` est levée, empêchant le serveur de démarrer dans un état non sécurisé.
+  - **`docker-compose.yml`** : Retrait complet des valeurs de repli par défaut (`JWT_SECRET=${JWT_SECRET}` et `POSTGRES_PASSWORD=${POSTGRES_PASSWORD}`) afin d'interdire tout démarrage silencieux avec un secret par défaut si les variables ne sont pas explicitement définies dans l'environnement.
+  - **`.env.example`** : Placeholders explicites (`CHANGE_ME_GENERATE_WITH_openssl_rand_hex_32`).
   - **`README.md`** : Ajout de la documentation des commandes de génération cryptographique (`openssl rand -hex 32`).
 * **Justification :** Le principe de *Secure by Default* impose le refus de démarrage (*fail-fast*) dès lors qu'un secret cryptographique maître est absent ou vulnérable au craquage par dictionnaires.
 
@@ -108,8 +109,8 @@ L'injection de prompt (qu'elle soit directe via la requête utilisateur ou indir
 ## 4. Vérification et validation des tests
 
 La suite de tests unitaires et d'intégration a été entièrement actualisée pour vérifier le comportement sécurisé :
-- `tests/test_auth.py` : 6/6 tests validés (rejet des clés faibles `< 32` car., rejet `401` sur jetons expirés).
+- `tests/test_auth.py` : 8/8 tests validés (rejet de secret manquant, rejet de placeholders/fallbacks, rejet des clés faibles `< 32` car., rejet `401` sur jetons expirés).
 - `tests/test_documents.py` : 7/7 tests validés (isolation multi-tenant, `404` sur tentative cross-tenant, rejet des extensions interdites `400`, rejet des fichiers `> 10 Mo` avec `413`, assainissement contre la traversée de répertoire).
 - `tests/test_rag.py` : 6/6 tests validés (isolation vectorielle absolue par tenant, validation des filtres `where`, résilience aux injections).
 
-**Total : 19/19 tests automatisés au vert sous conteneur Docker.**
+**Total : 21/21 tests automatisés au vert sous conteneur Docker.**

@@ -17,10 +17,20 @@ logger = logging.getLogger("tenantguard.auth")
 # The weak default fallback ("secret123") has been removed.
 # A cryptographically secure secret (minimum 32 characters / 256 bits) is required.
 # ==============================================================================
+DISALLOWED_JWT_SECRETS = {
+    "secret123",
+    "CHANGE_ME_GENERATE_WITH_openssl_rand_hex_32",
+}
+
 JWT_SECRET = os.getenv("JWT_SECRET", "").strip()
-if not JWT_SECRET or len(JWT_SECRET) < 32:
+if (
+    not JWT_SECRET
+    or len(JWT_SECRET) < 32
+    or JWT_SECRET.startswith("CHANGE_ME")
+    or JWT_SECRET in DISALLOWED_JWT_SECRETS
+):
     raise RuntimeError(
-        "FATAL SECURITY CONFIGURATION ERROR: 'JWT_SECRET' is missing or insufficiently secure. "
+        "FATAL SECURITY CONFIGURATION ERROR: 'JWT_SECRET' is missing, set to a placeholder, or insufficiently secure. "
         "A minimum length of 32 characters (256 bits) is strictly required to prevent brute-force attacks. "
         "Generate a cryptographically secure key with: openssl rand -hex 32"
     )
