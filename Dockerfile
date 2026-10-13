@@ -6,16 +6,17 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 
 WORKDIR /app
 
-# Install system dependencies
-RUN apt-get update && apt-get install -y --no-install-recommends \
+# Update system packages and install system dependencies
+RUN apt-get update && apt-get upgrade -y && apt-get install -y --no-install-recommends \
     gcc \
     libpq-dev \
     curl \
     && rm -rf /var/lib/apt/lists/*
 
-# Install python dependencies
+# Install python dependencies, then remove build-only tools (setuptools/wheel) to eliminate vendored CVEs
 COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt \
+    && pip uninstall -y setuptools wheel
 
 # Copy application source code
 COPY . .
