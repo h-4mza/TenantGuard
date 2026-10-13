@@ -4,15 +4,16 @@ services:
     container_name: tenantguard_db
     restart: unless-stopped
     environment:
-      POSTGRES_USER: tenantguard
-      POSTGRES_PASSWORD: tenantguard_secret
-      POSTGRES_DB: tenantguard_db
+      POSTGRES_USER: ${POSTGRES_USER:-tenantguard}
+      # Set in .env (generate with: openssl rand -base64 24)
+      POSTGRES_PASSWORD: "${POSTGRES_PASSWORD:-CHANGE_ME_GENERATE_WITH_openssl_rand_base64_24}"
+      POSTGRES_DB: ${POSTGRES_DB:-tenantguard_db}
     ports:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U tenantguard -d tenantguard_db"]
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER:-tenantguard} -d $${POSTGRES_DB:-tenantguard_db}"]
       interval: 5s
       timeout: 5s
       retries: 5
@@ -29,9 +30,10 @@ services:
     ports:
       - "8000:8000"
     environment:
-      - DATABASE_URL=postgresql://tenantguard:tenantguard_secret@db:5432/tenantguard_db
-      - JWT_SECRET=secret123
-      - JWT_ALGORITHM=HS256
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-tenantguard}:${POSTGRES_PASSWORD:-CHANGE_ME_GENERATE_WITH_openssl_rand_base64_24}@db:5432/${POSTGRES_DB:-tenantguard_db}
+      # Required minimum 32 chars. Set in .env (generate with: openssl rand -hex 32)
+      - JWT_SECRET=${JWT_SECRET:-CHANGE_ME_GENERATE_WITH_openssl_rand_hex_32}
+      - JWT_ALGORITHM=${JWT_ALGORITHM:-HS256}
       - UPLOAD_DIR=/app/uploads
       - CHROMA_PERSIST_DIR=/app/chroma_data
       - GEMINI_API_KEY=${GEMINI_API_KEY:-}
@@ -41,6 +43,7 @@ services:
       - ./uploads:/app/uploads
       - ./chroma_data:/app/chroma_data
       - ./app:/app/app
+      - ./tests:/app/tests
 
 volumes:
   postgres_data:

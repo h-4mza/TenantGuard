@@ -7,7 +7,7 @@ from fastapi.testclient import TestClient
 os.environ["DATABASE_URL"] = "sqlite:///./test_tenantguard.db"
 os.environ["UPLOAD_DIR"] = "./test_uploads"
 os.environ["CHROMA_PERSIST_DIR"] = "./test_chroma"
-os.environ["JWT_SECRET"] = "secret123"
+os.environ["JWT_SECRET"] = "t" * 64  # Secure 64-character secret for test suite
 os.environ["GEMINI_API_KEY"] = "mock"
 
 from app.main import app

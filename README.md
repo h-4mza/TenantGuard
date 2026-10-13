@@ -63,19 +63,44 @@ Au premier lancement, la base PostgreSQL et ChromaDB sont automatiquement initia
 
 ---
 
-## ⚙️ Configuration (.env)
+## ⚙️ Configuration & Sécurisation (.env)
 
-Copiez le modèle de configuration si vous souhaitez personnaliser les paramètres (comme brancher une vraie clé Google Gemini) :
+Avant de lancer l'application, configurez les variables d'environnement en copiant le fichier exemple :
 
 ```bash
 cp .env.example .env
 ```
 
-Variables disponibles :
+### Procédure de génération des secrets obligatoires
+
+L'application refuse strictement de démarrer si `JWT_SECRET` est absent ou comporte moins de 32 caractères (256 bits d'entropie). 
+
+1. **Génération d'un secret JWT cryptographiquement fort (minimum 32 caractères) :**
+   ```bash
+   # Sous Linux / macOS / WSL / Git Bash :
+   openssl rand -hex 32
+
+   # Sous PowerShell :
+   [Convert]::ToHexString((1..32 | ForEach-Object { Get-Random -Minimum 0 -Maximum 256 }))
+
+   # Ou via Python :
+   python -c "import secrets; print(secrets.token_hex(32))"
+   ```
+
+2. **Génération d'un mot de passe fort pour PostgreSQL :**
+   ```bash
+   openssl rand -base64 24
+   ```
+
+Reportez ensuite les valeurs générées dans votre fichier `.env` :
 
 ```env
-DATABASE_URL=postgresql://tenantguard:tenantguard_secret@db:5432/tenantguard_db
-JWT_SECRET=secret123
+POSTGRES_USER=tenantguard
+POSTGRES_PASSWORD=<VOTRE_MOT_DE_PASSE_POSTGRES_GENERE>
+POSTGRES_DB=tenantguard_db
+DATABASE_URL=postgresql://tenantguard:<VOTRE_MOT_DE_PASSE_POSTGRES_GENERE>@db:5432/tenantguard_db
+
+JWT_SECRET=<VOTRE_SECRET_JWT_GENERE_MIN_32_CHARS>
 JWT_ALGORITHM=HS256
 UPLOAD_DIR=/app/uploads
 CHROMA_PERSIST_DIR=/app/chroma_data

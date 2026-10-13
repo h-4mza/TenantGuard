@@ -1,5 +1,22 @@
 from datetime import datetime, timedelta
 import jwt
+import pytest
+
+def test_jwt_secret_minimum_length_enforcement(monkeypatch):
+    """
+    Remediation Verification (FINDING-01 & FINDING-08):
+    Starting without a secure JWT_SECRET (>= 32 chars) must raise a RuntimeError.
+    """
+    import importlib
+    monkeypatch.setenv("JWT_SECRET", "short_weak_secret")
+    with pytest.raises(RuntimeError, match="FATAL SECURITY CONFIGURATION ERROR"):
+        import app.auth
+        importlib.reload(app.auth)
+
+    # Restore valid test secret for subsequent tests
+    monkeypatch.setenv("JWT_SECRET", "t" * 64)
+    import app.auth
+    importlib.reload(app.auth)
 
 def test_root_endpoint(client):
     response = client.get("/")

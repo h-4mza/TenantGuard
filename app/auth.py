@@ -13,11 +13,18 @@ from app.models import User
 logger = logging.getLogger("tenantguard.auth")
 
 # ==============================================================================
-# VULNERABILITY 1: WEAK JWT CONFIGURATION
-# - Secret key is a short dictionary word ("secret123") vulnerable to offline brute-force.
-# - Token expiration verification is explicitly DISABLED during decode (verify_exp=False).
+# REMEDIATION (FINDING-01 & FINDING-08): STRONG JWT SECRET ENFORCEMENT
+# The weak default fallback ("secret123") has been removed.
+# A cryptographically secure secret (minimum 32 characters / 256 bits) is required.
 # ==============================================================================
-JWT_SECRET = os.getenv("JWT_SECRET", "secret123")
+JWT_SECRET = os.getenv("JWT_SECRET", "").strip()
+if not JWT_SECRET or len(JWT_SECRET) < 32:
+    raise RuntimeError(
+        "FATAL SECURITY CONFIGURATION ERROR: 'JWT_SECRET' is missing or insufficiently secure. "
+        "A minimum length of 32 characters (256 bits) is strictly required to prevent brute-force attacks. "
+        "Generate a cryptographically secure key with: openssl rand -hex 32"
+    )
+
 JWT_ALGORITHM = os.getenv("JWT_ALGORITHM", "HS256")
 
 security = HTTPBearer(auto_error=False)
