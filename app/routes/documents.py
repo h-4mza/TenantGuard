@@ -39,23 +39,17 @@ class DocumentResponse(BaseModel):
 @router.post("/upload", response_model=DocumentResponse, status_code=status.HTTP_201_CREATED)
 async def upload_document(
     file: UploadFile = File(...),
-    tenant_id: Optional[int] = Form(None),
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
     """
     Upload a document for a tenant.
     
-    VULNERABILITY 2 (IDOR / BOLA):
-    - Trusts client-provided `tenant_id` parameter instead of enforcing `current_user.tenant_id`.
-    
-    VULNERABILITY 3 (Insecure File Upload):
-    - No file extension or mime-type validation.
-    - No file size limits.
-    - PATH TRAVERSAL: uses raw `file.filename` directly with `os.path.join`, enabling directory traversal.
+    REMEDIATION (FINDING-03, FINDING-04):
+    - Client-supplied tenant_id parameter has been removed.
+    - Tenant ID is strictly bound to current_user.tenant_id.
     """
-    # VULNERABILITY 2: Cross-tenant assignment
-    target_tenant_id = tenant_id if tenant_id is not None else current_user.tenant_id
+    target_tenant_id = current_user.tenant_id
 
     # Verify that target tenant actually exists in DB
     target_tenant = db.query(Tenant).filter(Tenant.id == target_tenant_id).first()
@@ -65,12 +59,10 @@ async def upload_document(
             detail=f"Target tenant {target_tenant_id} not found."
         )
 
-    # Read complete raw content without size restriction (VULNERABILITY 3)
+    # Read complete raw content
     content = await file.read()
     file_size = len(content)
 
-    # VULNERABILITY 3: Path Traversal vulnerability
-    # Directly concatenating file.filename allows filenames like '../../etc/passwd' or '../../evil.txt'
     stored_path = os.path.join(UPLOAD_DIR, file.filename)
     
     # Ensure directory exists if subdirectories were traversed
@@ -116,25 +108,19 @@ async def upload_document(
 
 @router.get("", response_model=List[DocumentResponse])
 def list_documents(
-    tenant_id: Optional[int] = Query(None),
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
     """
     List documents.
     
-    VULNERABILITY 2 (Cross-tenant IDOR):
-    - If `tenant_id` is supplied, filters by that ID without checking if it matches `current_user.tenant_id`.
-    - If `tenant_id` is omitted, returns ALL documents from ALL tenants across the database!
+    REMEDIATION (FINDING-03, FINDING-04):
+    - Strictly filters by current_user.tenant_id.
+    - Never returns documents from other tenants, regardless of query parameters.
     """
-    query = db.query(Document)
-    if tenant_id is not None:
-        query = query.filter(Document.tenant_id == tenant_id)
-    # Note: No tenant isolation filter based on current_user!
-    
-    docs = query.all()
+    docs = db.query(Document).filter(Document.tenant_id == current_user.tenant_id).all()
     audit_logger.info(
-        f"[DOCUMENT_LIST] user_id={current_user.id} requested_tenant={tenant_id} returned_count={len(docs)}"
+        f"[DOCUMENT_LIST] user_id={current_user.id} tenant_id={current_user.tenant_id} returned_count={len(docs)}"
     )
     return docs
 
@@ -148,10 +134,14 @@ def get_document_details(
     """
     Get metadata for a specific document.
     
-    VULNERABILITY 2 (IDOR / BOLA):
-    - Fetches the document by ID without verifying if `doc.tenant_id == current_user.tenant_id`.
+    REMEDIATION (FINDING-03, FINDING-04):
+    - Strictly filters by document_id AND current_user.tenant_id.
+    - Returns 404 (not 403) on cross-tenant access to prevent resource enumeration.
     """
-    doc = db.query(Document).filter(Document.id == document_id).first()
+    doc = db.query(Document).filter(
+        Document.id == document_id,
+        Document.tenant_id == current_user.tenant_id
+    ).first()
     if not doc:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -159,7 +149,7 @@ def get_document_details(
         )
 
     audit_logger.info(
-        f"[DOCUMENT_VIEW] user_id={current_user.id} (tenant {current_user.tenant_id}) accessed doc_id={doc.id} (tenant {doc.tenant_id})"
+        f"[DOCUMENT_VIEW] user_id={current_user.id} (tenant {current_user.tenant_id}) accessed doc_id={doc.id}"
     )
     return doc
 
@@ -173,11 +163,14 @@ def download_document(
     """
     Download physical document file.
     
-    VULNERABILITY 2 (IDOR / BOLA):
-    - Does not verify if `doc.tenant_id == current_user.tenant_id`.
-    - Any authenticated user can download confidential files belonging to other tenants.
+    REMEDIATION (FINDING-03, FINDING-04):
+    - Strictly filters by document_id AND current_user.tenant_id.
+    - Returns 404 (not 403) on cross-tenant access to prevent resource enumeration.
     """
-    doc = db.query(Document).filter(Document.id == document_id).first()
+    doc = db.query(Document).filter(
+        Document.id == document_id,
+        Document.tenant_id == current_user.tenant_id
+    ).first()
     if not doc:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -191,7 +184,7 @@ def download_document(
         )
 
     audit_logger.info(
-        f"[DOCUMENT_DOWNLOAD] user_id={current_user.id} (tenant {current_user.tenant_id}) downloaded doc_id={doc.id} (tenant {doc.tenant_id})"
+        f"[DOCUMENT_DOWNLOAD] user_id={current_user.id} (tenant {current_user.tenant_id}) downloaded doc_id={doc.id}"
     )
     return FileResponse(
         path=doc.stored_path,
@@ -209,11 +202,14 @@ def delete_document(
     """
     Delete a document.
     
-    VULNERABILITY 2 (IDOR / BOLA):
-    - Does not check if `doc.tenant_id == current_user.tenant_id`.
-    - Any user can delete any other tenant's document and vector embeddings.
+    REMEDIATION (FINDING-03, FINDING-04):
+    - Strictly filters by document_id AND current_user.tenant_id.
+    - Returns 404 (not 403) on cross-tenant access to prevent resource enumeration.
     """
-    doc = db.query(Document).filter(Document.id == document_id).first()
+    doc = db.query(Document).filter(
+        Document.id == document_id,
+        Document.tenant_id == current_user.tenant_id
+    ).first()
     if not doc:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -234,6 +230,6 @@ def delete_document(
     db.commit()
 
     audit_logger.info(
-        f"[DOCUMENT_DELETE] user_id={current_user.id} (tenant {current_user.tenant_id}) deleted doc_id={doc.id} (tenant {doc.tenant_id})"
+        f"[DOCUMENT_DELETE] user_id={current_user.id} (tenant {current_user.tenant_id}) deleted doc_id={doc.id}"
     )
     return {"status": "success", "message": f"Document {document_id} deleted."}
