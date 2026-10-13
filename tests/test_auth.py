@@ -73,12 +73,13 @@ def test_register_and_login(client):
     assert me_response.status_code == 200
     assert me_response.json()["username"] == "peter_gibbons"
 
-def test_vulnerability_jwt_no_expiration_check(client):
+def test_jwt_expiration_enforcement(client):
     """
-    Vulnerability Verification (v0):
-    A token with an expired 'exp' claim is accepted by the server because verify_exp=False.
+    Remediation Verification (FINDING-02):
+    A token with an expired 'exp' claim is rejected by the server with 401 Unauthorized ('Token expired').
     """
-    # Forge a token that expired 1 year ago
+    from app.auth import JWT_SECRET
+
     expired_payload = {
         "sub": "alice",
         "user_id": 1,
@@ -86,13 +87,12 @@ def test_vulnerability_jwt_no_expiration_check(client):
         "role": "admin",
         "exp": (datetime.utcnow() - timedelta(days=365)).timestamp()
     }
-    expired_token = jwt.encode(expired_payload, "secret123", algorithm="HS256")
+    expired_token = jwt.encode(expired_payload, JWT_SECRET, algorithm="HS256")
 
     # Call /auth/me with the expired token
     response = client.get(
         "/auth/me",
         headers={"Authorization": f"Bearer {expired_token}"}
     )
-    # Because verify_exp=False is enabled in v0, the server accepts this expired token!
-    assert response.status_code == 200
-    assert response.json()["username"] == "alice"
+    assert response.status_code == 401
+    assert response.json()["detail"] == "Token expired"

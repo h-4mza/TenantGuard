@@ -43,14 +43,13 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
 
 def create_access_token(data: Dict[str, Any], expires_delta: Optional[timedelta] = None) -> str:
     """
-    Generate a signed JWT token.
-    Note: Even if an 'exp' claim is added, the server verification logic disables exp checks!
+    Generate a signed JWT token with an expiration timestamp.
     """
     to_encode = data.copy()
     if expires_delta:
         expire = datetime.utcnow() + expires_delta
     else:
-        # Default short expiration (e.g. 15 minutes) - but verification is ignored!
+        # Default expiration: 15 minutes
         expire = datetime.utcnow() + timedelta(minutes=15)
     
     to_encode.update({"exp": expire.timestamp()})
@@ -61,16 +60,23 @@ def create_access_token(data: Dict[str, Any], expires_delta: Optional[timedelta]
 def decode_access_token(token: str) -> Dict[str, Any]:
     """
     Decode and validate JWT token.
-    VULNERABILITY: verify_exp is explicitly set to False, meaning tokens NEVER expire.
+    REMEDIATION (FINDING-02): Restored native PyJWT expiration verification.
+    Expired tokens are strictly rejected with 401 Unauthorized ('Token expired').
     """
     try:
         payload = jwt.decode(
             token,
             JWT_SECRET,
-            algorithms=[JWT_ALGORITHM],
-            options={"verify_exp": False}  # <-- VULNERABILITY 1: Token never expires!
+            algorithms=[JWT_ALGORITHM]
         )
         return payload
+    except jwt.ExpiredSignatureError as e:
+        logger.warning(f"Expired JWT token provided: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Token expired",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
     except jwt.InvalidTokenError as e:
         logger.warning(f"Invalid JWT token provided: {e}")
         raise HTTPException(
