@@ -97,13 +97,13 @@ def test_upload_ignores_client_tenant_id(client, alice_token):
     doc = response.json()
     assert doc["tenant_id"] == 1
 
-def test_vulnerability_path_traversal_upload(client, alice_token):
+def test_path_traversal_sanitization(client, alice_token):
     """
-    Vulnerability Verification (v0):
-    File upload does not sanitize filename with os.path.basename,
-    allowing relative path traversal strings.
+    Remediation Verification (FINDING-05):
+    File upload sanitizes filenames with os.path.basename and prepends a UUID,
+    preventing path traversal sequences from escaping the upload directory.
     """
-    traversal_filename = "subfolder/traversal_test.txt"
+    traversal_filename = "../../etc/traversal_test.txt"
     file_content = b"Traversal test payload content."
     response = client.post(
         "/documents/upload",
@@ -112,4 +112,33 @@ def test_vulnerability_path_traversal_upload(client, alice_token):
     )
     assert response.status_code == 201
     doc = response.json()
-    assert "subfolder" in doc["stored_path"]
+    assert doc["filename"] == "traversal_test.txt"
+    assert ".." not in doc["stored_path"]
+    assert "etc" not in doc["stored_path"]
+
+def test_unsupported_file_extension_rejected(client, alice_token):
+    """
+    Remediation Verification (FINDING-05):
+    Disallowed file extensions (e.g. .exe, .sh, .py, .php) are rejected with 400 Bad Request.
+    """
+    response = client.post(
+        "/documents/upload",
+        headers={"Authorization": f"Bearer {alice_token}"},
+        files={"file": ("malicious_payload.exe", io.BytesIO(b"MZ..."), "application/octet-stream")}
+    )
+    assert response.status_code == 400
+    assert "Unsupported file extension" in response.json()["detail"]
+
+def test_oversize_file_upload_rejected(client, alice_token):
+    """
+    Remediation Verification (FINDING-05):
+    Files exceeding the 10 MB limit are rejected with 413 Payload Too Large.
+    """
+    oversized_data = b"0" * (10 * 1024 * 1024 + 1024)  # 10MB + 1KB
+    response = client.post(
+        "/documents/upload",
+        headers={"Authorization": f"Bearer {alice_token}"},
+        files={"file": ("huge_document.txt", io.BytesIO(oversized_data), "text/plain")}
+    )
+    assert response.status_code == 413
+    assert "File exceeds maximum allowed size" in response.json()["detail"]
