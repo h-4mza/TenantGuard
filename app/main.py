@@ -29,7 +29,7 @@ def seed_sample_documents():
                         "CONFIDENTIAL - ACME CORP INTERNAL USE ONLY\n"
                         "Project Icarus: Acme Corp plans a hostile takeover of Spacely Sprockets in Q4 2026.\n"
                         "Budget allocated: $75,000,000 USD.\n"
-                        "Internal treasury secret code: ACME-TREASURY-KEY-9912.\n"
+                        "Internal treasury secret code: ACME-TREASURY-KEY-9912.\n"  # gitleaks:allow
                         "Lead negotiator: Alice Jenkins."
                     )
                 },

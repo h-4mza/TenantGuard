@@ -1,0 +1,61 @@
+# ==============================================================================
+# Gitleaks Ignore List — TenantGuard
+# ==============================================================================
+# Fichiers de documentation pédagogique et preuves de pentest contenant des
+# secrets d'exemple, des tokens JWT forgés de test ou des références à l'ancienne
+# configuration v0 délibérément vulnérable.
+#
+# Ces entrées correspondent à des données de test documentées et NON à de vraies
+# fuites de secrets d'infrastructure ou de production.
+#
+# Conformément aux exigences DevSecOps, aucun dossier applicatif critique (app/,
+# docker-compose.yml, .env.example) n'est ignoré globalement afin d'assurer
+# la détection de toute véritable fuite accidentelle.
+# ==============================================================================
+
+# ------------------------------------------------------------------------------
+# Pentest Findings : Jeton JWT légitime de test (FINDING-01, ligne 18)
+# Preuve de concept du cassage de clé faible documentée dans le rapport de pentest.
+# ------------------------------------------------------------------------------
+pentest/findings/FINDING-01-jwt-weak-secret.md:jwt:18
+/repo/pentest/findings/FINDING-01-jwt-weak-secret.md:jwt:18
+
+# ------------------------------------------------------------------------------
+# Pentest Findings : Jeton JWT forgé cross-tenant (FINDING-01, ligne 37)
+# Preuve de concept de falsification de token documentée dans le rapport de pentest.
+# ------------------------------------------------------------------------------
+pentest/findings/FINDING-01-jwt-weak-secret.md:jwt:37
+/repo/pentest/findings/FINDING-01-jwt-weak-secret.md:jwt:37
+
+# ------------------------------------------------------------------------------
+# Pentest Findings : Extraits de configuration v0 vulnérable (FINDING-08)
+# Citations documentant les anciens secrets par défaut (secret123, tenantguard_secret)
+# ------------------------------------------------------------------------------
+pentest/findings/FINDING-08-hardcoded-secrets-config.md:generic-api-key:20
+/repo/pentest/findings/FINDING-08-hardcoded-secrets-config.md:generic-api-key:20
+pentest/findings/FINDING-08-hardcoded-secrets-config.md:generic-api-key:21
+/repo/pentest/findings/FINDING-08-hardcoded-secrets-config.md:generic-api-key:21
+pentest/findings/FINDING-08-hardcoded-secrets-config.md:generic-api-key:22
+/repo/pentest/findings/FINDING-08-hardcoded-secrets-config.md:generic-api-key:22
+pentest/findings/FINDING-08-hardcoded-secrets-config.md:generic-api-key:27
+/repo/pentest/findings/FINDING-08-hardcoded-secrets-config.md:generic-api-key:27
+pentest/findings/FINDING-08-hardcoded-secrets-config.md:generic-api-key:29
+/repo/pentest/findings/FINDING-08-hardcoded-secrets-config.md:generic-api-key:29
+pentest/findings/FINDING-08-hardcoded-secrets-config.md:generic-api-key:34
+/repo/pentest/findings/FINDING-08-hardcoded-secrets-config.md:generic-api-key:34
+
+# ------------------------------------------------------------------------------
+# Documentation : Registre des vulnérabilités volontaires v0 (KNOWN_ISSUES_V0.md)
+# Documentation pédagogique mentionnant l'ancienne valeur par défaut 'secret123'.
+# ------------------------------------------------------------------------------
+KNOWN_ISSUES_V0.md:generic-api-key:26
+/repo/KNOWN_ISSUES_V0.md:generic-api-key:26
+KNOWN_ISSUES_V0.md:generic-api-key:31
+/repo/KNOWN_ISSUES_V0.md:generic-api-key:31
+
+# ------------------------------------------------------------------------------
+# Documentation : Journal des remédiations techniques (CHANGELOG_BLOC3.md)
+# Historique des correctifs documentant les secrets révoqués et corrigés.
+# ------------------------------------------------------------------------------
+CHANGELOG_BLOC3.md:generic-api-key:23
+/repo/CHANGELOG_BLOC3.md:generic-api-key:23

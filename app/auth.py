@@ -18,7 +18,7 @@ logger = logging.getLogger("tenantguard.auth")
 # A cryptographically secure secret (minimum 32 characters / 256 bits) is required.
 # ==============================================================================
 DISALLOWED_JWT_SECRETS = {
-    "secret123",
+    "secret123",  # gitleaks:allow - Blacklist entry for prohibited weak secret (Bloc 3 defensive check)
     "CHANGE_ME_GENERATE_WITH_openssl_rand_hex_32",
 }
 
