@@ -2,10 +2,46 @@ from datetime import datetime, timedelta
 import jwt
 import pytest
 
+def test_jwt_secret_missing_from_environment_raises_runtime_error(monkeypatch):
+    """
+    Remediation Verification (FINDING-01 & FINDING-08):
+    Starting without JWT_SECRET in environment must raise a RuntimeError and refuse to start.
+    """
+    import importlib
+    monkeypatch.delenv("JWT_SECRET", raising=False)
+    with pytest.raises(RuntimeError, match="FATAL SECURITY CONFIGURATION ERROR"):
+        import app.auth
+        importlib.reload(app.auth)
+
+    # Restore valid test secret for subsequent tests
+    monkeypatch.setenv("JWT_SECRET", "t" * 64)
+    import app.auth
+    importlib.reload(app.auth)
+
+def test_jwt_secret_placeholder_fallback_rejected(monkeypatch):
+    """
+    Remediation Verification (FINDING-01 & FINDING-08):
+    Ensure placeholders or hardcoded fallbacks (even if >= 32 characters)
+    are strictly rejected and never silently accepted.
+    """
+    import importlib
+    placeholder = "CHANGE_ME_GENERATE_WITH_openssl_rand_hex_32"
+    assert len(placeholder) >= 32
+
+    monkeypatch.setenv("JWT_SECRET", placeholder)
+    with pytest.raises(RuntimeError, match="FATAL SECURITY CONFIGURATION ERROR"):
+        import app.auth
+        importlib.reload(app.auth)
+
+    # Restore valid test secret for subsequent tests
+    monkeypatch.setenv("JWT_SECRET", "t" * 64)
+    import app.auth
+    importlib.reload(app.auth)
+
 def test_jwt_secret_minimum_length_enforcement(monkeypatch):
     """
     Remediation Verification (FINDING-01 & FINDING-08):
-    Starting without a secure JWT_SECRET (>= 32 chars) must raise a RuntimeError.
+    Starting with a short JWT_SECRET (< 32 chars) must raise a RuntimeError.
     """
     import importlib
     monkeypatch.setenv("JWT_SECRET", "short_weak_secret")
