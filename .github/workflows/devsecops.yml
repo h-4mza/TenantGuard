@@ -1,0 +1,143 @@
+name: DevSecOps Pipeline
+
+# ==============================================================================
+# Pipeline DevSecOps TenantGuard — GitHub Actions
+# Portage du pipeline GitLab CI d'origine (.gitlab-ci.yml) vers GitHub Actions,
+# car le dépôt est hébergé sur GitHub (GitHub ne lit jamais .gitlab-ci.yml).
+#
+# 6 étapes : SAST (Semgrep), SCA (pip-audit), Secrets (Gitleaks),
+# Build + Scan image (Trivy), DAST (OWASP ZAP), SBOM (Syft).
+#
+# Les jobs sont indépendants et tournent en parallèle : un job rouge n'empêche
+# pas les autres de remonter leurs résultats. Les gates de sécurité (échec sur
+# findings) sont actifs pour SAST, SCA, Secrets et le scan d'image ; le DAST est
+# informatif (ZAP baseline remonte presque toujours des avertissements d'en-têtes).
+# ==============================================================================
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  # ----------------------------------------------------------------------------
+  # 1. SAST — Semgrep (analyse statique du code source)
+  # ----------------------------------------------------------------------------
+  sast:
+    name: SAST (Semgrep)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Installer Semgrep
+        run: pip install --no-cache-dir semgrep
+      - name: Analyse statique
+        run: semgrep scan --config auto --error
+
+  # ----------------------------------------------------------------------------
+  # 2. SCA — pip-audit (CVEs connues dans les dépendances Python)
+  # ----------------------------------------------------------------------------
+  sca:
+    name: SCA (pip-audit)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Installer pip-audit
+        run: pip install --no-cache-dir pip-audit
+      - name: Audit des dépendances
+        run: pip-audit -r requirements.txt
+
+  # ----------------------------------------------------------------------------
+  # 3. SECRETS — Gitleaks (secrets codés en dur dans l'arbre de travail)
+  # NB : scan de l'arbre de travail courant (--no-git). L'historique git contient
+  # encore les anciens secrets de la v0 ; leur purge relève de la remédiation
+  # FINDING-08 (réécriture d'historique), traitée séparément.
+  # ----------------------------------------------------------------------------
+  secrets:
+    name: Secrets (Gitleaks)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Scan des secrets
+        run: |
+          docker run --rm -v "${{ github.workspace }}:/repo" \
+            zricethezav/gitleaks:latest \
+            detect --source=/repo --no-git --redact --verbose
+
+  # ----------------------------------------------------------------------------
+  # 4. BUILD + CONTAINER SCAN — Docker build + Trivy
+  # ----------------------------------------------------------------------------
+  build-scan:
+    name: Build + Scan image (Trivy)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Construire l'image
+        run: docker build -t tenantguard-api:latest .
+      - name: Scan Trivy (CRITICAL/HIGH, correctifs disponibles uniquement)
+        run: |
+          docker run --rm \
+            -v /var/run/docker.sock:/var/run/docker.sock \
+            aquasec/trivy:latest image \
+            --severity CRITICAL,HIGH \
+            --ignore-unfixed \
+            --exit-code 1 \
+            tenantguard-api:latest
+
+  # ----------------------------------------------------------------------------
+  # 5. DAST — OWASP ZAP Baseline (scan dynamique de l'API en cours d'exécution)
+  # Informatif : n'échoue pas le pipeline (ZAP baseline remonte toujours des
+  # avertissements cosmétiques comme des en-têtes de sécurité manquants).
+  # ----------------------------------------------------------------------------
+  dast:
+    name: DAST (OWASP ZAP)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Démarrer l'infrastructure (PostgreSQL + API)
+        run: |
+          export JWT_SECRET=$(openssl rand -hex 32)
+          export POSTGRES_PASSWORD=$(openssl rand -hex 16)
+          docker compose up -d --build
+      - name: Attendre la disponibilité de l'API
+        run: |
+          for i in $(seq 1 30); do
+            if curl -sf http://localhost:8000/health; then
+              echo "API disponible"; exit 0
+            fi
+            echo "En attente de l'API..."; sleep 3
+          done
+          echo "L'API n'a pas démarré à temps"; docker compose logs api; exit 1
+      - name: Scan DAST ZAP Baseline (informatif)
+        continue-on-error: true
+        run: |
+          docker run --rm --network host -t \
+            ghcr.io/zaproxy/zaproxy:stable \
+            zap-baseline.py -t http://localhost:8000
+      - name: Arrêt de l'infrastructure
+        if: always()
+        run: docker compose down -v || true
+
+  # ----------------------------------------------------------------------------
+  # 6. SBOM — Syft (nomenclature logicielle SPDX, conservée en artifact)
+  # ----------------------------------------------------------------------------
+  sbom:
+    name: SBOM (Syft)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Générer le SBOM (SPDX-JSON)
+        uses: anchore/sbom-action@v0
+        with:
+          path: .
+          format: spdx-json
+          artifact-name: sbom.spdx.json
