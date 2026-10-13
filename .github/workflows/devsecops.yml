@@ -54,7 +54,17 @@ jobs:
       - name: Installer pip-audit
         run: pip install --no-cache-dir pip-audit
       - name: Audit des dépendances
-        run: pip-audit -r requirements.txt
+        # Exclusions justifiées pour chromadb (aucune version de correctif disponible upstream) :
+        # - PYSEC-2026-311 : pas de fix disponible upstream ; ChromaDB est utilisé en bibliothèque intégrée locale (PersistentClient), non en serveur réseau exposé.
+        # - PYSEC-2026-3813 : pas de fix disponible upstream dans la dernière version stable de ChromaDB (1.5.9).
+        # - PYSEC-2026-3814 : pas de fix disponible upstream dans la dernière version stable de ChromaDB (1.5.9).
+        # - PYSEC-2026-3815 : pas de fix disponible upstream dans la dernière version stable de ChromaDB (1.5.9).
+        run: |
+          pip-audit -r requirements.txt \
+            --ignore-vuln PYSEC-2026-311 \
+            --ignore-vuln PYSEC-2026-3813 \
+            --ignore-vuln PYSEC-2026-3814 \
+            --ignore-vuln PYSEC-2026-3815
 
   # ----------------------------------------------------------------------------
   # 3. SECRETS — Gitleaks (secrets codés en dur dans l'arbre de travail)
