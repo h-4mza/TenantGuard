@@ -1,0 +1,322 @@
+apiVersion: 1
+
+groups:
+  - orgId: 1
+    name: "TenantGuard Detection Rules"
+    folder: "TenantGuard Security"
+    interval: 1m
+    rules:
+      # ------------------------------------------------------------------------
+      # 1. BRUTE_FORCE_LOGIN: >= 5 AUTH_LOGIN_FAILED in 5m from same IP
+      # ------------------------------------------------------------------------
+      - uid: tg-brute-force-login
+        title: BRUTE_FORCE_LOGIN
+        condition: C
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: loki
+            model:
+              editorMode: code
+              expr: sum by (ip) (count_over_time({container="tenantguard_api"} | json | event="AUTH_LOGIN_FAILED" [5m]))
+              queryType: range
+              refId: A
+          - refId: B
+            datasourceUid: "__expr__"
+            model:
+              type: reduce
+              expression: A
+              reducer: last
+              refId: B
+          - refId: C
+            datasourceUid: "__expr__"
+            model:
+              type: threshold
+              expression: B
+              conditions:
+                - evaluator:
+                    params: [4]
+                    type: gt
+              refId: C
+        noDataState: OK
+        execErrState: Error
+        for: 0s
+        labels:
+          severity: High
+          mitre_technique: T1110
+        annotations:
+          summary: "Brute force login attack detected from IP {{ $labels.ip }}"
+          description: "IP {{ $labels.ip }} reached {{ $values.B }} failed login attempts in 5 minutes (threshold >= 5)."
+          runbook_url: "docs/runbooks/BRUTE_FORCE_LOGIN.md"
+
+      # ------------------------------------------------------------------------
+      # 2. CREDENTIAL_STUFFING: >= 5 distinct usernames failed from same IP in 5m
+      # ------------------------------------------------------------------------
+      - uid: tg-credential-stuffing
+        title: CREDENTIAL_STUFFING
+        condition: C
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: loki
+            model:
+              editorMode: code
+              expr: count by (ip) (sum by (ip, username) (count_over_time({container="tenantguard_api"} | json | event="AUTH_LOGIN_FAILED" [5m])))
+              queryType: range
+              refId: A
+          - refId: B
+            datasourceUid: "__expr__"
+            model:
+              type: reduce
+              expression: A
+              reducer: last
+              refId: B
+          - refId: C
+            datasourceUid: "__expr__"
+            model:
+              type: threshold
+              expression: B
+              conditions:
+                - evaluator:
+                    params: [4]
+                    type: gt
+              refId: C
+        noDataState: OK
+        execErrState: Error
+        for: 0s
+        labels:
+          severity: High
+          mitre_technique: T1110.004
+        annotations:
+          summary: "Credential stuffing attack detected from IP {{ $labels.ip }}"
+          description: "IP {{ $labels.ip }} targeted {{ $values.B }} distinct usernames with failed logins in 5 minutes (threshold >= 5)."
+          runbook_url: "docs/runbooks/CREDENTIAL_STUFFING.md"
+
+      # ------------------------------------------------------------------------
+      # 3. CROSS_TENANT_ACCESS: >= 3 DOCUMENT_ACCESS_DENIED in 5m for same user_id
+      # ------------------------------------------------------------------------
+      - uid: tg-cross-tenant-access
+        title: CROSS_TENANT_ACCESS
+        condition: C
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: loki
+            model:
+              editorMode: code
+              expr: sum by (user_id) (count_over_time({container="tenantguard_api"} | json | event="DOCUMENT_ACCESS_DENIED" [5m]))
+              queryType: range
+              refId: A
+          - refId: B
+            datasourceUid: "__expr__"
+            model:
+              type: reduce
+              expression: A
+              reducer: last
+              refId: B
+          - refId: C
+            datasourceUid: "__expr__"
+            model:
+              type: threshold
+              expression: B
+              conditions:
+                - evaluator:
+                    params: [2]
+                    type: gt
+              refId: C
+        noDataState: OK
+        execErrState: Error
+        for: 0s
+        labels:
+          severity: Critical
+          mitre_technique: "T1078 / T1190"
+        annotations:
+          summary: "Cross-tenant access violation (IDOR/BOLA) by user_id {{ $labels.user_id }}"
+          description: "User {{ $labels.user_id }} triggered {{ $values.B }} access denied events on other tenants' documents in 5 minutes (threshold >= 3)."
+          runbook_url: "docs/runbooks/CROSS_TENANT_ACCESS.md"
+
+      # ------------------------------------------------------------------------
+      # 4. UPLOAD_ABUSE: >= 3 UPLOAD_REJECTED in 10m for same user_id
+      # ------------------------------------------------------------------------
+      - uid: tg-upload-abuse
+        title: UPLOAD_ABUSE
+        condition: C
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 600
+              to: 0
+            datasourceUid: loki
+            model:
+              editorMode: code
+              expr: sum by (user_id) (count_over_time({container="tenantguard_api"} | json | event="UPLOAD_REJECTED" [10m]))
+              queryType: range
+              refId: A
+          - refId: B
+            datasourceUid: "__expr__"
+            model:
+              type: reduce
+              expression: A
+              reducer: last
+              refId: B
+          - refId: C
+            datasourceUid: "__expr__"
+            model:
+              type: threshold
+              expression: B
+              conditions:
+                - evaluator:
+                    params: [2]
+                    type: gt
+              refId: C
+        noDataState: OK
+        execErrState: Error
+        for: 0s
+        labels:
+          severity: Medium
+          mitre_technique: T1105
+        annotations:
+          summary: "Repeated file upload rejections for user_id {{ $labels.user_id }}"
+          description: "User {{ $labels.user_id }} had {{ $values.B }} file uploads rejected in 10 minutes (threshold >= 3)."
+          runbook_url: "docs/runbooks/UPLOAD_ABUSE.md"
+
+      # ------------------------------------------------------------------------
+      # 5. TOKEN_ABUSE: >= 5 AUTH_TOKEN_EXPIRED in 5m for same IP
+      # ------------------------------------------------------------------------
+      - uid: tg-token-abuse
+        title: TOKEN_ABUSE
+        condition: C
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: loki
+            model:
+              editorMode: code
+              expr: sum by (ip) (count_over_time({container="tenantguard_api"} | json | event="AUTH_TOKEN_EXPIRED" [5m]))
+              queryType: range
+              refId: A
+          - refId: B
+            datasourceUid: "__expr__"
+            model:
+              type: reduce
+              expression: A
+              reducer: last
+              refId: B
+          - refId: C
+            datasourceUid: "__expr__"
+            model:
+              type: threshold
+              expression: B
+              conditions:
+                - evaluator:
+                    params: [4]
+                    type: gt
+              refId: C
+        noDataState: OK
+        execErrState: Error
+        for: 0s
+        labels:
+          severity: Medium
+          mitre_technique: T1528
+        annotations:
+          summary: "Expired/invalid token abuse detected from IP {{ $labels.ip }}"
+          description: "IP {{ $labels.ip }} sent {{ $values.B }} requests with expired tokens in 5 minutes (threshold >= 5)."
+          runbook_url: "docs/runbooks/TOKEN_ABUSE.md"
+
+      # ------------------------------------------------------------------------
+      # 6. ACCOUNT_TAKEOVER_SUSPECT: AUTH_LOGIN_SUCCESS following >= 3 failures in 10m
+      # ------------------------------------------------------------------------
+      - uid: tg-account-takeover-suspect
+        title: ACCOUNT_TAKEOVER_SUSPECT
+        condition: C
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 600
+              to: 0
+            datasourceUid: loki
+            model:
+              editorMode: code
+              expr: (sum by (username) (count_over_time({container="tenantguard_api"} | json | event="AUTH_LOGIN_FAILED" [10m])) >= 3) and (sum by (username) (count_over_time({container="tenantguard_api"} | json | event="AUTH_LOGIN_SUCCESS" [10m])) >= 1)
+              queryType: range
+              refId: A
+          - refId: B
+            datasourceUid: "__expr__"
+            model:
+              type: reduce
+              expression: A
+              reducer: last
+              refId: B
+          - refId: C
+            datasourceUid: "__expr__"
+            model:
+              type: threshold
+              expression: B
+              conditions:
+                - evaluator:
+                    params: [0]
+                    type: gt
+              refId: C
+        noDataState: OK
+        execErrState: Error
+        for: 0s
+        labels:
+          severity: Critical
+          mitre_technique: T1110
+        annotations:
+          summary: "Suspected account takeover for username {{ $labels.username }}"
+          description: "Username {{ $labels.username }} experienced >= 3 failed logins followed by a successful login within 10 minutes."
+          runbook_url: "docs/runbooks/ACCOUNT_TAKEOVER_SUSPECT.md"
+
+      # ------------------------------------------------------------------------
+      # 7. EXFILTRATION_VOLUME: >= 20 DOCUMENT_DOWNLOAD or DOCUMENT_VIEW in 5m
+      # ------------------------------------------------------------------------
+      - uid: tg-exfiltration-volume
+        title: EXFILTRATION_VOLUME
+        condition: C
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: loki
+            model:
+              editorMode: code
+              expr: sum by (user_id) (count_over_time({container="tenantguard_api"} | json | event =~ "DOCUMENT_DOWNLOAD|DOCUMENT_VIEW" [5m]))
+              queryType: range
+              refId: A
+          - refId: B
+            datasourceUid: "__expr__"
+            model:
+              type: reduce
+              expression: A
+              reducer: last
+              refId: B
+          - refId: C
+            datasourceUid: "__expr__"
+            model:
+              type: threshold
+              expression: B
+              conditions:
+                - evaluator:
+                    params: [19]
+                    type: gt
+              refId: C
+        noDataState: OK
+        execErrState: Error
+        for: 0s
+        labels:
+          severity: Medium
+          mitre_technique: T1530
+        annotations:
+          summary: "High volume of document downloads/views by user_id {{ $labels.user_id }}"
+          description: "User {{ $labels.user_id }} performed {{ $values.B }} document access operations in 5 minutes (threshold >= 20)."
+          runbook_url: "docs/runbooks/EXFILTRATION_VOLUME.md"

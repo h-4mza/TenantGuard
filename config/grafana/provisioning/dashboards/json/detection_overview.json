@@ -1,0 +1,216 @@
+{
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": {
+          "type": "grafana",
+          "uid": "-- Grafana --"
+        },
+        "enable": true,
+        "hide": true,
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 1,
+  "id": null,
+  "links": [],
+  "liveNow": true,
+  "panels": [
+    {
+      "id": 1,
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 0
+      },
+      "type": "alertlist",
+      "title": "État des Règles d'Alerte (Unified Alerting)",
+      "description": "Vue temps réel des alertes de détection TenantGuard et de leur état",
+      "options": {
+        "show": "all",
+        "stateFilter": {
+          "firing": true,
+          "pending": true,
+          "noData": false,
+          "normal": true,
+          "error": true
+        },
+        "alertName": "",
+        "dashboardAlerts": false,
+        "alertInstanceLabelFilter": "",
+        "maxItems": 20,
+        "sortOrder": 1,
+        "groupBy": ["alertname", "severity"]
+      }
+    },
+    {
+      "id": 2,
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 0
+      },
+      "type": "barchart",
+      "title": "Volume des Événements par Sévérité / Niveau",
+      "description": "Répartition des logs d'audit par niveau (INFO, WARNING, ERROR)",
+      "datasource": {
+        "type": "loki",
+        "uid": "loki"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "loki"
+          },
+          "editorMode": "code",
+          "expr": "sum by (level) (count_over_time({container=\"tenantguard_api\"} | json | level != \"\" [$__range]))",
+          "queryType": "range",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "fillOpacity": 80,
+            "gradientMode": "none"
+          },
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      }
+    },
+    {
+      "id": 3,
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 8
+      },
+      "type": "table",
+      "title": "Top IP en Échec d'Authentification (AUTH_LOGIN_FAILED)",
+      "description": "Adresses IP sources des échecs de connexion (Brute Force / Credential Stuffing)",
+      "datasource": {
+        "type": "loki",
+        "uid": "loki"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "loki"
+          },
+          "editorMode": "code",
+          "expr": "topk(10, sum by (ip) (count_over_time({container=\"tenantguard_api\"} | json | event=\"AUTH_LOGIN_FAILED\" [$__range])))",
+          "queryType": "instant",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto",
+            "displayMode": "auto"
+          }
+        },
+        "overrides": []
+      }
+    },
+    {
+      "id": 4,
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 8
+      },
+      "type": "table",
+      "title": "Top Utilisateurs en Refus Inter-Tenant (DOCUMENT_ACCESS_DENIED)",
+      "description": "Utilisateurs ayant tenté d'accéder à des documents d'autres organisations (IDOR/BOLA)",
+      "datasource": {
+        "type": "loki",
+        "uid": "loki"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "loki"
+          },
+          "editorMode": "code",
+          "expr": "topk(10, sum by (user_id) (count_over_time({container=\"tenantguard_api\"} | json | event=\"DOCUMENT_ACCESS_DENIED\" [$__range])))",
+          "queryType": "instant",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto",
+            "displayMode": "auto"
+          }
+        },
+        "overrides": []
+      }
+    },
+    {
+      "id": 5,
+      "gridPos": {
+        "h": 10,
+        "w": 24,
+        "x": 0,
+        "y": 16
+      },
+      "type": "logs",
+      "title": "Journal d'Audit des Événements de Sécurité",
+      "description": "Flux en direct des alertes et refus de sécurité émis par l'API",
+      "datasource": {
+        "type": "loki",
+        "uid": "loki"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "loki"
+          },
+          "editorMode": "code",
+          "expr": "{container=\"tenantguard_api\"} | json | event =~ \"AUTH_LOGIN_FAILED|DOCUMENT_ACCESS_DENIED|UPLOAD_REJECTED|AUTH_TOKEN_EXPIRED\"",
+          "queryType": "range",
+          "refId": "A"
+        }
+      ],
+      "options": {
+        "showLabels": true,
+        "wrapLogMessage": true,
+        "enableLogDetails": true,
+        "sortOrder": "Descending"
+      }
+    }
+  ],
+  "refresh": "5s",
+  "schemaVersion": 38,
+  "style": "dark",
+  "tags": ["tenantguard", "security", "detection", "audit"],
+  "time": {
+    "from": "now-1h",
+    "to": "now"
+  },
+  "timepicker": {
+    "refresh_intervals": ["5s", "10s", "30s", "1m", "5m"]
+  },
+  "timezone": "browser",
+  "title": "TenantGuard - Detection Overview",
+  "uid": "tenantguard-detection-overview",
+  "version": 1
+}

@@ -34,3 +34,14 @@ services:
       - GF_USERS_ALLOW_SIGN_UP=false
     volumes:
       - ./config/grafana/provisioning:/etc/grafana/provisioning:ro
+
+  alert-receiver:
+    image: python:3.11-slim
+    container_name: tenantguard_alert_receiver
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:8088:8080"
+    volumes:
+      - ./config/alert_receiver:/app:ro
+    command: python -u /app/receiver.py
+

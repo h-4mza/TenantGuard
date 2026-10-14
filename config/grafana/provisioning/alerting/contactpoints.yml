@@ -1,0 +1,12 @@
+apiVersion: 1
+
+contactPoints:
+  - orgId: 1
+    name: "security-webhook"
+    receivers:
+      - uid: "security-webhook-receiver"
+        type: webhook
+        disableResolveMessage: false
+        settings:
+          url: "http://alert-receiver:8080/alerts"
+          httpMethod: "POST"

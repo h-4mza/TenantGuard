@@ -68,7 +68,8 @@ def init_db():
                 role="admin"
             )
             u3 = User(
-                tenant_id=t3.id,
+                id=3,
+                tenant_id=3,
                 username="charlie",
                 email="charlie@initech.com",
                 hashed_password=_hash_pwd("charlie123"),

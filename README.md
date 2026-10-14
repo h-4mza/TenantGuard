@@ -198,7 +198,25 @@ tenantguard/
 
 ---
 
+## 🚨 Détection des Menaces & Alerting (Grafana Unified Alerting)
+
+TenantGuard intègre un système de détection des menaces et d'alerting en temps réel, provisionné entièrement sous forme de code :
+- **Règles d'alerte Grafana Unified Alerting** : 7 règles de sécurité provisionnées dans `config/grafana/provisioning/alerting/` couvrant les attaques par force brute, le credential stuffing, les violations d'accès cross-tenant (IDOR/BOLA), les abus d'upload, le vol/rejeu de tokens, la prise de contrôle de compte (ATO) et l'exfiltration massive de données.
+- **Mapping MITRE ATT&CK** : Toutes les règles sont étiquetées avec leurs techniques MITRE ATT&CK (`T1110`, `T1110.004`, `T1078`, `T1190`, `T1105`, `T1528`, `T1530`) et leur sévérité.
+- **Tableau de bord de détection** : Dashboard Grafana pré-provisionné **Detection Overview** (`tenantguard-detection-overview`) avec vue d'ensemble des alertes actives, séries temporelles par sévérité, top IP attaquantes, top utilisateurs en violation cross-tenant et flux de logs d'audit.
+- **Récepteur d'alertes Webhook** : Micro-service local (`alert-receiver`) consignant les alertes HTTP POST au format JSON sur stdout.
+- **Runbooks de Réponse à Incident** : Chaque alerte pointe directement vers son guide de triage et de confinement dans [`docs/runbooks/`](docs/runbooks/).
+- **Simulation d'Attaques & Vérification** : Suite de simulation automatisée rejouant les vecteurs d'attaque et vérifiant le passage à l'état `Firing` de toutes les alertes :
+  ```bash
+  bash scripts/verify_detections.sh
+  ```
+
+Pour la documentation complète des règles, des requêtes LogQL et des scénarios de réponse :  
+👉 **Consultez [DETECTION.md](DETECTION.md)**.
+
+---
+
 ## 🔐 Registre des Vulnérabilités (v0)
 
 Pour le détail des failles, leur criticité, leur localisation exacte et les vecteurs d'attaque :  
-👉 **Consultez [KNOWN_ISSUES_V0.md](file:///C:/Users/HP/Desktop/TenantGuard/KNOWN_ISSUES_V0.md)**.
+👉 **Consultez [KNOWN_ISSUES_V0.md](KNOWN_ISSUES_V0.md)**.
