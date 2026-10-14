@@ -1,0 +1,12 @@
+apiVersion: 1
+
+providers:
+  - name: 'TenantGuard'
+    orgId: 1
+    folder: 'TenantGuard'
+    type: file
+    disableDeletion: false
+    updateIntervalSeconds: 10
+    allowUiUpdates: true
+    options:
+      path: /etc/grafana/provisioning/dashboards/json

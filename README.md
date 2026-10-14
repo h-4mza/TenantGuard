@@ -42,10 +42,18 @@ Le projet démarre avec une seule commande standard :
 docker compose up --build
 ```
 
+Pour démarrer l'application avec la **stack d'observabilité complète** (Loki, Promtail, Grafana) :
+
+```bash
+docker compose --profile observability up -d --build
+```
+Consultez le guide [OBSERVABILITY.md](file:///C:/Users/HP/Desktop/TenantGuard/OBSERVABILITY.md) pour les détails d'accès et requêtes LogQL.
+
 L'API FastAPI est immédiatement disponible sur :
 - **Documentation Swagger interactive** : [http://localhost:8000/docs](http://localhost:8000/docs)
 - **Documentation ReDoc** : [http://localhost:8000/redoc](http://localhost:8000/redoc)
 - **Vérification de santé (Healthcheck)** : [http://localhost:8000/health](http://localhost:8000/health)
+- **Grafana (Observabilité & Audit)** : [http://localhost:3000](http://localhost:3000) (admin / admin)
 
 ---
 
