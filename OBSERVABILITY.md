@@ -26,6 +26,8 @@ Les services d'observabilité sont isolés sous le profil Docker Compose `observ
 
 ### 1. Démarrer toute la stack (App + Observabilité)
 
+Avant de lancer le profil d'observabilité, définissez la variable `GRAFANA_ADMIN_PASSWORD` dans votre fichier `.env` (générez un mot de passe fort avec `openssl rand -base64 24`). Si cette variable n'est pas définie, le démarrage échouera pour des raisons de sécurité.
+
 ```bash
 docker compose --profile observability up -d --build
 ```
@@ -41,12 +43,16 @@ docker compose up -d
 
 ---
 
-## 🖥️ Accès à Grafana & Tableau de Bord
+## 🖥️ Accès à Grafana & Sécurisation Réseau
 
-| Service | URL | Identifiants par défaut |
+> [!IMPORTANT]
+> **Durcissement réseau (Localhost Only) :**  
+> Les ports de **Grafana (`127.0.0.1:3000`)** et de **Loki (`127.0.0.1:3100`)** sont strictement liés à l'interface locale (`127.0.0.1`). Ils ne sont pas exposés sur `0.0.0.0` ni accessibles depuis l'extérieur de la machine hôte.
+
+| Service | URL | Identifiants |
 | :--- | :--- | :--- |
-| **Grafana** | [http://localhost:3000](http://localhost:3000) | Utilisateur : `admin`<br>Mot de passe : `admin` |
-| **Loki** | [http://localhost:3100](http://localhost:3100) | Interne / proxyisé |
+| **Grafana** | [http://127.0.0.1:3000](http://127.0.0.1:3000) | Utilisateur : `${GRAFANA_ADMIN_USER}` (`admin` par défaut)<br>Mot de passe : `${GRAFANA_ADMIN_PASSWORD}` (défini dans `.env`) |
+| **Loki** | [http://127.0.0.1:3100](http://127.0.0.1:3100) | Interne / proxyisé (API Push/Query sur `127.0.0.1`) |
 
 Le dashboard de départ est automatiquement provisionné dans le dossier **TenantGuard** :
 - **Titre du Dashboard :** `TenantGuard - Audit & Observabilité Sécurité`

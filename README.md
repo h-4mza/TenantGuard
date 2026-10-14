@@ -53,7 +53,7 @@ L'API FastAPI est immédiatement disponible sur :
 - **Documentation Swagger interactive** : [http://localhost:8000/docs](http://localhost:8000/docs)
 - **Documentation ReDoc** : [http://localhost:8000/redoc](http://localhost:8000/redoc)
 - **Vérification de santé (Healthcheck)** : [http://localhost:8000/health](http://localhost:8000/health)
-- **Grafana (Observabilité & Audit)** : [http://localhost:3000](http://localhost:3000) (admin / admin)
+- **Grafana (Observabilité & Audit)** : [http://127.0.0.1:3000](http://127.0.0.1:3000) (identifiants configurés via `GRAFANA_ADMIN_USER` / `GRAFANA_ADMIN_PASSWORD` dans `.env`, lié exclusivement à `127.0.0.1`)
 
 ---
 
@@ -100,6 +100,11 @@ L'application refuse strictement de démarrer si `JWT_SECRET` est absent ou comp
    openssl rand -base64 24
    ```
 
+3. **Génération d'un mot de passe fort pour Grafana (Observabilité) :**
+   ```bash
+   openssl rand -base64 24
+   ```
+
 Reportez ensuite les valeurs générées dans votre fichier `.env` :
 
 ```env
@@ -114,6 +119,10 @@ UPLOAD_DIR=/app/uploads
 CHROMA_PERSIST_DIR=/app/chroma_data
 GEMINI_API_KEY=               # Laissez vide pour utiliser le mock LLM intégré, ou renseignez votre clé Gemini
 GEMINI_MODEL=gemini-1.5-flash
+
+# Observabilité (Loki / Grafana) - ports liés à 127.0.0.1 (localhost uniquement)
+GRAFANA_ADMIN_USER=admin
+GRAFANA_ADMIN_PASSWORD=<VOTRE_MOT_DE_PASSE_GRAFANA_GENERE>
 ```
 
 ---
