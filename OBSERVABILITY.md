@@ -103,3 +103,10 @@ Pour arrêter l'ensemble des conteneurs :
 ```bash
 docker compose --profile observability down
 ```
+
+---
+
+## 🔒 Security Notes
+
+1. **Montage `/var/run/docker.sock` par Promtail (read-only)** : Bien que monté en lecture seule (`:ro`), ce socket expose les métadonnées de l'ensemble des conteneurs et les journaux du démon Docker de l'hôte. Ce mécanisme est acceptable uniquement dans le cadre d'un profil de démonstration locale ; la production doit privilégier un log driver (ex. Loki Docker Driver) ou un scraping basé sur des fichiers (`file-based scrape`).
+2. **Origine du champ `ip` dans les logs d'audit** : Le champ `ip` provient directement de `request.client.host`. Derrière un reverse proxy, il correspond à l'adresse du proxy et non à celle du client réel. La production exige `uvicorn --proxy-headers` restreint via `--forwarded-allow-ips` (ou un traitement de confiance équivalent de `X-Forwarded-For`), cet en-tête ne devant jamais être accepté inconditionnellement.
