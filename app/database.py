@@ -84,6 +84,7 @@ def init_db():
             from sqlalchemy import text
             for table in ["tenants", "users", "documents"]:
                 try:
+                    # nosemgrep: python.sqlalchemy.security.audit.avoid-sqlalchemy-text.avoid-sqlalchemy-text - Table name is strictly constrained to a hardcoded internal whitelist with no external user input
                     db.execute(text(f"SELECT setval(pg_get_serial_sequence('{table}', 'id'), COALESCE((SELECT MAX(id) FROM {table}), 1));"))
                     db.commit()
                 except Exception as seq_err:

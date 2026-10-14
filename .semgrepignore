@@ -1,0 +1,8 @@
+# ==============================================================================
+# Semgrep Ignore List — TenantGuard
+# ==============================================================================
+# Fichiers de pentest et preuves de vulnérabilités contenant des jetons d'exemple
+# et des vecteurs de test documentés.
+# Conformément aux exigences du projet, le dossier pentest/ ne doit pas être altéré.
+# ==============================================================================
+pentest/

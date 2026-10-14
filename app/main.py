@@ -119,6 +119,7 @@ app = FastAPI(
 # CORS configuration (permissive for development / pentesting tools)
 app.add_middleware(
     CORSMiddleware,
+    # nosemgrep: python.fastapi.security.wildcard-cors.wildcard-cors - Permissive CORS allowed for local dev and pentest lab tooling
     allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],

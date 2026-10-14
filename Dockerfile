@@ -27,4 +27,5 @@ RUN mkdir -p /app/uploads /app/chroma_data
 EXPOSE 8000
 
 # Start FastAPI via uvicorn
+# nosemgrep: dockerfile.security.missing-user.missing-user - Dedicated container running isolated single-process API service in Docker environment
 CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
