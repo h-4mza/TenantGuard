@@ -206,10 +206,13 @@ TenantGuard intègre un système de détection des menaces et d'alerting en temp
 - **Tableau de bord de détection** : Dashboard Grafana pré-provisionné **Detection Overview** (`tenantguard-detection-overview`) avec vue d'ensemble des alertes actives, séries temporelles par sévérité, top IP attaquantes, top utilisateurs en violation cross-tenant et flux de logs d'audit.
 - **Récepteur d'alertes Webhook** : Micro-service local (`alert-receiver`) consignant les alertes HTTP POST au format JSON sur stdout.
 - **Runbooks de Réponse à Incident** : Chaque alerte pointe directement vers son guide de triage et de confinement dans [`docs/runbooks/`](docs/runbooks/).
-- **Simulation d'Attaques & Vérification** : Suite de simulation automatisée rejouant les vecteurs d'attaque et vérifiant le passage à l'état `Firing` de toutes les alertes :
+- **Simulation d'Attaques & Vérification** : Suite de simulation automatisée rejouant les vecteurs d'attaque et vérifiant le passage à l'état `Firing` de toutes les alertes. Aucun mot de passe par défaut n'est codé en dur dans les scripts ; les variables d'environnement sont obligatoires et leurs valeurs de démonstration correspondent au tableau des comptes de seed (`alice123`, `bob123`, `charlie123`) :
   ```bash
+  ALICE_PASSWORD=alice123 BOB_PASSWORD=bob123 CHARLIE_PASSWORD=charlie123 \
+  GRAFANA_ADMIN_PASSWORD=secretgrafanapass123 \
   bash scripts/verify_detections.sh
   ```
+- **Note DAST (CI/CD)** : Dans le workflow GitHub Actions, le job DAST OWASP ZAP Baseline se termine avec le code de sortie `2` (warnings passifs sur les en-têtes HTTP) et est configuré comme informatif.
 
 Pour la documentation complète des règles, des requêtes LogQL et des scénarios de réponse :  
 👉 **Consultez [DETECTION.md](DETECTION.md)**.

@@ -46,6 +46,7 @@ and
 - The left vector identifies usernames experiencing $\ge 3$ failed logins.
 - The right vector identifies usernames experiencing $\ge 1$ successful login.
 - The `and` operator matches series having identical `username` labels and emits an alert series only when both conditions are satisfied simultaneously.
+- **Limite technique :** la règle compare deux compteurs sur la même fenêtre de 10 min, sans garantir l'ordre ; un succès antérieur aux échecs la déclenche aussi.
 
 ---
 
@@ -93,15 +94,22 @@ and
 
 An automated test suite reproduces the 7 attack scenarios using `curl` against the TenantGuard API.
 
+Les scripts exigent la définition explicite des variables d'environnement `ALICE_PASSWORD`, `BOB_PASSWORD`, `CHARLIE_PASSWORD` et `GRAFANA_ADMIN_PASSWORD` (aucun mot de passe par défaut n'est codé en dur). Les valeurs de démonstration correspondent à celles du tableau des comptes de seed (`alice123`, `bob123`, `charlie123`).
+
 ### Replay Command
 To run the attack simulation and verify that all 7 detection rules enter the `Firing` state:
 ```bash
+ALICE_PASSWORD=alice123 \
+BOB_PASSWORD=bob123 \
+CHARLIE_PASSWORD=charlie123 \
+GRAFANA_ADMIN_PASSWORD=secretgrafanapass123 \
 bash scripts/verify_detections.sh
 ```
 
 ### Manual Trigger
 Alternatively, run the raw simulation script:
 ```bash
+ALICE_PASSWORD=alice123 BOB_PASSWORD=bob123 CHARLIE_PASSWORD=charlie123 \
 bash scripts/simulate_attacks.sh
 ```
 and query the Grafana Alerting API:
@@ -111,7 +119,14 @@ curl -u admin:${GRAFANA_ADMIN_PASSWORD} http://127.0.0.1:3000/api/prometheus/gra
 
 ---
 
-## 5. Security Runbooks
+## 5. Note DAST (CI/CD)
+
+Dans le pipeline DevSecOps (`.github/workflows/devsecops.yml`), le scan dynamique **OWASP ZAP Baseline** inspecte l'API conteneurisée. En présence d'avertissements de sécurité passifs (ex: absence de certains en-têtes HTTP de durcissement comme CSP ou HSTS), ZAP baseline se termine avec le code de sortie `2` (warnings). Ce job est volontairement configuré comme **informatif** (`continue-on-error: true`) afin de remonter la visibilité des en-têtes sans bloquer le déploiement.
+
+
+---
+
+## 6. Security Runbooks
 
 Each detection rule links directly to an actionable runbook located in `docs/runbooks/`:
 - [`BRUTE_FORCE_LOGIN.md`](docs/runbooks/BRUTE_FORCE_LOGIN.md)

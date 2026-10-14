@@ -11,7 +11,8 @@ Detects a successful authentication event (`AUTH_LOGIN_SUCCESS`) occurring withi
   ```logql
   (sum by (username) (count_over_time({container="tenantguard_api"} | json | event="AUTH_LOGIN_FAILED" [10m])) >= 3) and (sum by (username) (count_over_time({container="tenantguard_api"} | json | event="AUTH_LOGIN_SUCCESS" [10m])) >= 1)
   ```
-- **Threshold:** `>= 3` failed logins followed by `>= 1` successful login for the same username within 10 minutes.
+- **Threshold:** `>= 3` failed logins and `>= 1` successful login for the same username within 10 minutes.
+- **Limite technique LogQL :** La règle compare deux compteurs sur la même fenêtre de 10 min, sans garantir l'ordre ; un succès antérieur aux échecs la déclenche aussi.
 
 ## 3. Triage in 3 Steps
 1. **Verify Legitimacy:**

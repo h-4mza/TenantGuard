@@ -17,10 +17,10 @@ if [[ "$BASE_URL" != "http://localhost"* && "$BASE_URL" != "http://127.0.0.1"* ]
     exit 1
 fi
 
-# Mots de passe issus de variables d'environnement (avec valeurs de seed demo par défaut)
-ALICE_PASSWORD="${ALICE_PASSWORD:-alice123}"
-BOB_PASSWORD="${BOB_PASSWORD:-bob123}"
-CHARLIE_PASSWORD="${CHARLIE_PASSWORD:-charlie123}"
+# Mots de passe issus de variables d'environnement obligatoires (comptes seed: alice123, bob123, charlie123)
+ALICE_PASSWORD="${ALICE_PASSWORD:?set ALICE_PASSWORD in environment (see seed accounts table in README.md, e.g. alice123)}"
+BOB_PASSWORD="${BOB_PASSWORD:?set BOB_PASSWORD in environment (see seed accounts table in README.md, e.g. bob123)}"
+CHARLIE_PASSWORD="${CHARLIE_PASSWORD:?set CHARLIE_PASSWORD in environment (see seed accounts table in README.md, e.g. charlie123)}"
 
 echo "=============================================================================="
 echo "🛡️  Démarrage de la simulation d'attaques TenantGuard"
@@ -112,13 +112,8 @@ echo -e "\n[+] 5/7 Déclenchement: TOKEN_ABUSE (Jetons JWT expirés)..."
 EXPIRED_TOKEN=$(docker compose exec -T api python -c "from app.auth import JWT_SECRET; import jwt; print(jwt.encode({'sub': 'attacker', 'exp': 1000000000}, JWT_SECRET, algorithm='HS256'))" 2>/dev/null | tr -d '\r' || true)
 
 if [[ -z "$EXPIRED_TOKEN" ]]; then
-    # Fallback dummy expired token for simulated attack test
-    # nosemgrep: generic.secrets.security.detected-jwt-token.detected-jwt-token
-    # gitleaks:allow
-    _H="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9"
-    _P="eyJzdWIiOiJhdHRhY2tlciIsImV4cCI6MTAwMDAwMDAwMH0"
-    _S="Te62tR75CO1FAB4UHZmo_RNzlc77tjBerJJpT_qHHQg"
-    EXPIRED_TOKEN="${_H}.${_P}.${_S}" # gitleaks:allow -- Mock expired token for simulation
+    echo "[-] ERREUR: Impossible de générer le jeton JWT expiré via le conteneur 'api'. Assurez-vous que le service 'api' est démarré." >&2
+    exit 1
 fi
 
 for i in {1..6}; do
