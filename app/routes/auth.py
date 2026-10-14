@@ -1,6 +1,6 @@
 from datetime import timedelta
 from typing import List, Optional
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Request
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
@@ -12,7 +12,7 @@ from app.auth import (
     create_access_token,
     get_current_user
 )
-from app.logging_config import audit_logger
+from app.logging_config import log_audit
 
 router = APIRouter(prefix="/auth", tags=["Authentication & Tenants"])
 
@@ -80,12 +80,19 @@ def create_tenant(payload: TenantCreate, db: Session = Depends(get_db)):
     db.add(tenant)
     db.commit()
     db.refresh(tenant)
-    audit_logger.info(f"[TENANT_CREATED] id={tenant.id} name='{tenant.name}'")
+    log_audit("TENANT_CREATED", tenant_id=tenant.id, name=tenant.name)
     return tenant
 
 @router.post("/register", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
-def register_user(payload: UserRegisterRequest, db: Session = Depends(get_db)):
+def register_user(
+    payload: UserRegisterRequest,
+    request: Request,
+    db: Session = Depends(get_db)
+):
     """Register a new user inside an existing tenant."""
+    # Client IP from direct connection (note: in production behind a reverse proxy, inspect X-Forwarded-For)
+    client_ip = request.client.host if request.client else "unknown"
+
     # Check tenant existence
     tenant = db.query(Tenant).filter(Tenant.id == payload.tenant_id).first()
     if not tenant:
@@ -117,20 +124,35 @@ def register_user(payload: UserRegisterRequest, db: Session = Depends(get_db)):
     db.commit()
     db.refresh(new_user)
 
-    audit_logger.info(
-        f"[AUTH_REGISTER] user_id={new_user.id} username='{new_user.username}' tenant_id={new_user.tenant_id}"
+    log_audit(
+        "AUTH_REGISTER",
+        user_id=new_user.id,
+        username=new_user.username,
+        tenant_id=new_user.tenant_id,
+        ip=client_ip
     )
     return new_user
 
 @router.post("/login", response_model=TokenResponse)
-def login(payload: UserLoginRequest, db: Session = Depends(get_db)):
+def login(
+    payload: UserLoginRequest,
+    request: Request,
+    db: Session = Depends(get_db)
+):
     """
     Authenticate user and issue a JWT token.
     VULNERABILITY: Generates a token signed with a weak secret, which never expires.
     """
+    # Client IP from direct connection (note: in production behind a reverse proxy, inspect X-Forwarded-For)
+    client_ip = request.client.host if request.client else "unknown"
+
     user = db.query(User).filter(User.username == payload.username).first()
     if not user or not verify_password(payload.password, user.hashed_password):
-        audit_logger.warning(f"[AUTH_LOGIN_FAILED] username='{payload.username}'")
+        log_audit(
+            "AUTH_LOGIN_FAILED",
+            username=payload.username,
+            ip=client_ip
+        )
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect username or password."
@@ -146,8 +168,12 @@ def login(payload: UserLoginRequest, db: Session = Depends(get_db)):
     # 15 minutes exp claim generated, but decoded with verify_exp=False
     access_token = create_access_token(data=token_data, expires_delta=timedelta(minutes=15))
 
-    audit_logger.info(
-        f"[AUTH_LOGIN_SUCCESS] user_id={user.id} username='{user.username}' tenant_id={user.tenant_id}"
+    log_audit(
+        "AUTH_LOGIN_SUCCESS",
+        user_id=user.id,
+        username=user.username,
+        tenant_id=user.tenant_id,
+        ip=client_ip
     )
     return {
         "access_token": access_token,

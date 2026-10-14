@@ -1,4 +1,5 @@
 import os
+import logging
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -9,7 +10,8 @@ from app.rag_service import rag_service
 from app.routes.auth import router as auth_router
 from app.routes.documents import router as documents_router, UPLOAD_DIR
 from app.routes.rag import router as rag_router
-from app.logging_config import audit_logger
+
+logger = logging.getLogger("tenantguard.app")
 
 def seed_sample_documents():
     """
@@ -83,9 +85,9 @@ def seed_sample_documents():
                     content=s["content"]
                 )
 
-            audit_logger.info("Successfully seeded 3 sample documents across tenants.")
+            logger.info("Successfully seeded 3 sample documents across tenants.")
     except Exception as e:
-        audit_logger.error(f"Error seeding sample documents: {e}")
+        logger.error(f"Error seeding sample documents: {e}")
         db.rollback()
     finally:
         db.close()
@@ -94,12 +96,12 @@ def seed_sample_documents():
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Startup: Initialize Database & Seed
-    audit_logger.info("Starting TenantGuard API (v0 - Intentionally Vulnerable)...")
+    logger.info("Starting TenantGuard API (v0 - Intentionally Vulnerable)...")
     init_db()
     seed_sample_documents()
     yield
     # Shutdown
-    audit_logger.info("Shutting down TenantGuard API...")
+    logger.info("Shutting down TenantGuard API...")
 
 
 app = FastAPI(

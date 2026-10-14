@@ -1,5 +1,5 @@
 from typing import Optional, List, Dict, Any
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Request
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
@@ -7,7 +7,7 @@ from app.database import get_db
 from app.models import User
 from app.auth import get_current_user
 from app.rag_service import rag_service
-from app.logging_config import audit_logger
+from app.logging_config import log_audit
 
 router = APIRouter(prefix="/rag", tags=["RAG (Retrieval-Augmented Generation)"])
 
@@ -31,6 +31,7 @@ class RAGQueryResponse(BaseModel):
 @router.post("/query", response_model=RAGQueryResponse)
 def query_rag_knowledge_base(
     payload: RAGQueryRequest,
+    request: Request,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
@@ -41,6 +42,9 @@ def query_rag_knowledge_base(
     - Client-provided tenant_id is eliminated.
     - Tenant ID is strictly bound to current_user.tenant_id on the server.
     """
+    # Client IP from direct connection (note: in production behind a reverse proxy, inspect X-Forwarded-For)
+    client_ip = request.client.host if request.client else "unknown"
+
     if not payload.query or not payload.query.strip():
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -60,9 +64,13 @@ def query_rag_knowledge_base(
     # Generate answer using LLM (Gemini or Mock stub)
     answer = rag_service.generate_response(query=payload.query, context_chunks=chunks)
 
-    audit_logger.info(
-        f"[RAG_QUERY] user_id={current_user.id} tenant_id={current_user.tenant_id} "
-        f"query='{payload.query[:60]}' chunks_retrieved={len(chunks)}"
+    log_audit(
+        "RAG_QUERY",
+        user_id=current_user.id,
+        user_tenant=current_user.tenant_id,
+        query=payload.query[:100],
+        chunks_retrieved=len(chunks),
+        ip=client_ip
     )
 
     return {

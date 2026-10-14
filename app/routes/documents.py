@@ -3,17 +3,19 @@ import uuid
 import re
 from typing import List, Optional
 from datetime import datetime
-from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, status
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, status, Request
 from fastapi.responses import FileResponse
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
+import logging
 from app.database import get_db
 from app.models import User, Document, Tenant
 from app.auth import get_current_user
 from app.rag_service import rag_service
-from app.logging_config import audit_logger
+from app.logging_config import log_audit
 
+logger = logging.getLogger("tenantguard.documents")
 router = APIRouter(prefix="/documents", tags=["Documents Management"])
 
 UPLOAD_DIR = os.getenv("UPLOAD_DIR", "/app/uploads")
@@ -44,6 +46,7 @@ class DocumentResponse(BaseModel):
 # ------------------------------------------------------------------------------
 @router.post("/upload", response_model=DocumentResponse, status_code=status.HTTP_201_CREATED)
 async def upload_document(
+    request: Request,
     file: UploadFile = File(...),
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
@@ -60,6 +63,9 @@ async def upload_document(
     - File size limit enforced (10 MB).
     - Filename sanitized with os.path.basename and stored with a unique UUID prefix.
     """
+    # Client IP from direct connection (note: in production behind a reverse proxy, inspect X-Forwarded-For)
+    client_ip = request.client.host if request.client else "unknown"
+
     target_tenant_id = current_user.tenant_id
 
     # Verify that target tenant actually exists in DB
@@ -75,6 +81,14 @@ async def upload_document(
     _, ext = os.path.splitext(original_filename)
     ext = ext.lower()
     if ext not in ALLOWED_EXTENSIONS:
+        log_audit(
+            "UPLOAD_REJECTED",
+            user_id=current_user.id,
+            tenant_id=current_user.tenant_id,
+            filename=original_filename,
+            reason=f"Unsupported file extension '{ext}'",
+            ip=client_ip
+        )
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=f"Unsupported file extension '{ext}'. Allowed extensions: {', '.join(sorted(ALLOWED_EXTENSIONS))}"
@@ -84,6 +98,14 @@ async def upload_document(
     content = await file.read()
     file_size = len(content)
     if file_size > MAX_FILE_SIZE:
+        log_audit(
+            "UPLOAD_REJECTED",
+            user_id=current_user.id,
+            tenant_id=current_user.tenant_id,
+            filename=original_filename,
+            reason="File exceeds maximum allowed size (10MB)",
+            ip=client_ip
+        )
         raise HTTPException(
             status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
             detail="File exceeds maximum allowed size (10MB)."
@@ -125,11 +147,16 @@ async def upload_document(
                 content=text_content
             )
     except Exception as e:
-        audit_logger.warning(f"Could not vectorize file {new_doc.filename}: {e}")
+        logger.warning(f"Could not vectorize file {new_doc.filename}: {e}")
 
-    audit_logger.info(
-        f"[DOCUMENT_UPLOAD] doc_id={new_doc.id} filename='{new_doc.filename}' "
-        f"assigned_tenant={target_tenant_id} uploaded_by={current_user.id} size={file_size}"
+    log_audit(
+        "DOCUMENT_UPLOAD",
+        user_id=current_user.id,
+        tenant_id=target_tenant_id,
+        document_id=new_doc.id,
+        filename=new_doc.filename,
+        file_size=file_size,
+        ip=client_ip
     )
 
     return new_doc
@@ -137,6 +164,7 @@ async def upload_document(
 
 @router.get("", response_model=List[DocumentResponse])
 def list_documents(
+    request: Request,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
@@ -147,9 +175,16 @@ def list_documents(
     - Strictly filters by current_user.tenant_id.
     - Never returns documents from other tenants, regardless of query parameters.
     """
+    # Client IP from direct connection (note: in production behind a reverse proxy, inspect X-Forwarded-For)
+    client_ip = request.client.host if request.client else "unknown"
+
     docs = db.query(Document).filter(Document.tenant_id == current_user.tenant_id).all()
-    audit_logger.info(
-        f"[DOCUMENT_LIST] user_id={current_user.id} tenant_id={current_user.tenant_id} returned_count={len(docs)}"
+    log_audit(
+        "DOCUMENT_LIST",
+        user_id=current_user.id,
+        tenant_id=current_user.tenant_id,
+        returned_count=len(docs),
+        ip=client_ip
     )
     return docs
 
@@ -157,6 +192,7 @@ def list_documents(
 @router.get("/{document_id}", response_model=DocumentResponse)
 def get_document_details(
     document_id: int,
+    request: Request,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
@@ -167,18 +203,35 @@ def get_document_details(
     - Strictly filters by document_id AND current_user.tenant_id.
     - Returns 404 (not 403) on cross-tenant access to prevent resource enumeration.
     """
+    # Client IP from direct connection (note: in production behind a reverse proxy, inspect X-Forwarded-For)
+    client_ip = request.client.host if request.client else "unknown"
+
     doc = db.query(Document).filter(
         Document.id == document_id,
         Document.tenant_id == current_user.tenant_id
     ).first()
     if not doc:
+        # Cross-tenant access check for security detection
+        cross_tenant_doc = db.query(Document).filter(Document.id == document_id).first()
+        if cross_tenant_doc:
+            log_audit(
+                "DOCUMENT_ACCESS_DENIED",
+                user_id=current_user.id,
+                tenant_id=current_user.tenant_id,
+                requested_document_id=document_id,
+                ip=client_ip
+            )
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Document with id {document_id} not found."
         )
 
-    audit_logger.info(
-        f"[DOCUMENT_VIEW] user_id={current_user.id} (tenant {current_user.tenant_id}) accessed doc_id={doc.id}"
+    log_audit(
+        "DOCUMENT_VIEW",
+        user_id=current_user.id,
+        tenant_id=current_user.tenant_id,
+        document_id=doc.id,
+        ip=client_ip
     )
     return doc
 
@@ -186,6 +239,7 @@ def get_document_details(
 @router.get("/{document_id}/download")
 def download_document(
     document_id: int,
+    request: Request,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
@@ -196,11 +250,24 @@ def download_document(
     - Strictly filters by document_id AND current_user.tenant_id.
     - Returns 404 (not 403) on cross-tenant access to prevent resource enumeration.
     """
+    # Client IP from direct connection (note: in production behind a reverse proxy, inspect X-Forwarded-For)
+    client_ip = request.client.host if request.client else "unknown"
+
     doc = db.query(Document).filter(
         Document.id == document_id,
         Document.tenant_id == current_user.tenant_id
     ).first()
     if not doc:
+        # Cross-tenant access check for security detection
+        cross_tenant_doc = db.query(Document).filter(Document.id == document_id).first()
+        if cross_tenant_doc:
+            log_audit(
+                "DOCUMENT_ACCESS_DENIED",
+                user_id=current_user.id,
+                tenant_id=current_user.tenant_id,
+                requested_document_id=document_id,
+                ip=client_ip
+            )
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Document with id {document_id} not found."
@@ -212,8 +279,12 @@ def download_document(
             detail="File on disk not found."
         )
 
-    audit_logger.info(
-        f"[DOCUMENT_DOWNLOAD] user_id={current_user.id} (tenant {current_user.tenant_id}) downloaded doc_id={doc.id}"
+    log_audit(
+        "DOCUMENT_DOWNLOAD",
+        user_id=current_user.id,
+        tenant_id=current_user.tenant_id,
+        document_id=doc.id,
+        ip=client_ip
     )
     return FileResponse(
         path=doc.stored_path,
@@ -225,6 +296,7 @@ def download_document(
 @router.delete("/{document_id}", status_code=status.HTTP_200_OK)
 def delete_document(
     document_id: int,
+    request: Request,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
@@ -235,11 +307,24 @@ def delete_document(
     - Strictly filters by document_id AND current_user.tenant_id.
     - Returns 404 (not 403) on cross-tenant access to prevent resource enumeration.
     """
+    # Client IP from direct connection (note: in production behind a reverse proxy, inspect X-Forwarded-For)
+    client_ip = request.client.host if request.client else "unknown"
+
     doc = db.query(Document).filter(
         Document.id == document_id,
         Document.tenant_id == current_user.tenant_id
     ).first()
     if not doc:
+        # Cross-tenant access check for security detection
+        cross_tenant_doc = db.query(Document).filter(Document.id == document_id).first()
+        if cross_tenant_doc:
+            log_audit(
+                "DOCUMENT_ACCESS_DENIED",
+                user_id=current_user.id,
+                tenant_id=current_user.tenant_id,
+                requested_document_id=document_id,
+                ip=client_ip
+            )
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Document with id {document_id} not found."
@@ -253,12 +338,16 @@ def delete_document(
         try:
             os.remove(doc.stored_path)
         except Exception as e:
-            audit_logger.warning(f"Could not remove file {doc.stored_path}: {e}")
+            logger.warning(f"Could not remove file {doc.stored_path}: {e}")
 
     db.delete(doc)
     db.commit()
 
-    audit_logger.info(
-        f"[DOCUMENT_DELETE] user_id={current_user.id} (tenant {current_user.tenant_id}) deleted doc_id={doc.id}"
+    log_audit(
+        "DOCUMENT_DELETE",
+        user_id=current_user.id,
+        tenant_id=current_user.tenant_id,
+        document_id=doc.id,
+        ip=client_ip
     )
     return {"status": "success", "message": f"Document {document_id} deleted."}

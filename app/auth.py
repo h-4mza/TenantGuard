@@ -4,11 +4,12 @@ import bcrypt
 import logging
 from datetime import datetime, timedelta
 from typing import Optional, Dict, Any
-from fastapi import Depends, HTTPException, status
+from fastapi import Depends, HTTPException, status, Request
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from sqlalchemy.orm import Session
 from app.database import get_db
 from app.models import User
+from app.logging_config import log_audit
 
 logger = logging.getLogger("tenantguard.auth")
 
@@ -67,7 +68,7 @@ def create_access_token(data: Dict[str, Any], expires_delta: Optional[timedelta]
     encoded_jwt = jwt.encode(to_encode, JWT_SECRET, algorithm=JWT_ALGORITHM)
     return encoded_jwt
 
-def decode_access_token(token: str) -> Dict[str, Any]:
+def decode_access_token(token: str, request: Optional[Request] = None) -> Dict[str, Any]:
     """
     Decode and validate JWT token.
     REMEDIATION (FINDING-02): Restored native PyJWT expiration verification.
@@ -82,6 +83,18 @@ def decode_access_token(token: str) -> Dict[str, Any]:
         return payload
     except jwt.ExpiredSignatureError as e:
         logger.warning(f"Expired JWT token provided: {e}")
+        # Client IP from direct connection (note: in production behind a reverse proxy, inspect X-Forwarded-For)
+        client_ip = request.client.host if (request and request.client) else "unknown"
+        audit_kwargs: Dict[str, Any] = {"ip": client_ip}
+        try:
+            # nosemgrep: python.jwt.security.unverified-jwt-decode.unverified-jwt-decode - Unverified decode strictly used for audit telemetry on already-rejected expired token
+            unverified = jwt.decode(token, options={"verify_signature": False, "verify_exp": False})
+            username = unverified.get("sub") or unverified.get("username")
+            if username:
+                audit_kwargs["username"] = str(username)
+        except Exception:
+            pass
+        log_audit("AUTH_TOKEN_EXPIRED", **audit_kwargs)
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Token expired",
@@ -96,6 +109,7 @@ def decode_access_token(token: str) -> Dict[str, Any]:
         )
 
 def get_current_user(
+    request: Request,
     credentials: Optional[HTTPAuthorizationCredentials] = Depends(security),
     db: Session = Depends(get_db)
 ) -> User:
@@ -110,7 +124,7 @@ def get_current_user(
         )
 
     token = credentials.credentials
-    payload = decode_access_token(token)
+    payload = decode_access_token(token, request=request)
     
     user_id = payload.get("user_id")
     if user_id is None:
