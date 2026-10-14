@@ -4,13 +4,6 @@ import sys
 from datetime import datetime, timezone
 from typing import Any, Dict, Optional
 
-# Try importing python-json-logger if available
-try:
-    from pythonjsonlogger import jsonlogger
-    BaseJsonFormatter = jsonlogger.JsonFormatter
-except ImportError:
-    BaseJsonFormatter = logging.Formatter
-
 
 class AuditJsonFormatter(logging.Formatter):
     """
