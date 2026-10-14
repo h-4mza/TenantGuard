@@ -116,11 +116,19 @@ app = FastAPI(
     lifespan=lifespan
 )
 
-# CORS configuration (permissive for development / pentesting tools)
+# CORS configuration — restricted to an explicit allowlist (configurable via env).
+# Wildcard origins are intentionally avoided: combined with allow_credentials=True,
+# a wildcard is also rejected by browsers per the CORS specification.
+ALLOWED_ORIGINS = [
+    o.strip()
+    for o in os.getenv(
+        "ALLOWED_ORIGINS", "http://localhost:8000,http://localhost:3000"
+    ).split(",")
+    if o.strip()
+]
 app.add_middleware(
     CORSMiddleware,
-    # nosemgrep: python.fastapi.security.wildcard-cors.wildcard-cors - Permissive CORS allowed for local dev and pentest lab tooling
-    allow_origins=["*"],
+    allow_origins=ALLOWED_ORIGINS,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

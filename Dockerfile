@@ -21,11 +21,16 @@ RUN pip install --no-cache-dir -r requirements.txt \
 # Copy application source code
 COPY . .
 
-# Create storage directories
-RUN mkdir -p /app/uploads /app/chroma_data
+# Create storage directories and a dedicated non-root user owning the app tree
+RUN mkdir -p /app/uploads /app/chroma_data \
+    && groupadd --system --gid 10001 appuser \
+    && useradd --system --uid 10001 --gid appuser --home-dir /app appuser \
+    && chown -R appuser:appuser /app
 
 EXPOSE 8000
 
+# Drop privileges: the service runs as a non-root user
+USER appuser
+
 # Start FastAPI via uvicorn
-# nosemgrep: dockerfile.security.missing-user.missing-user - Dedicated container running isolated single-process API service in Docker environment
 CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
