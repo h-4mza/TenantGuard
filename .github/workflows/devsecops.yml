@@ -117,7 +117,6 @@ jobs:
         run: |
           export JWT_SECRET=$(openssl rand -hex 32)
           export POSTGRES_PASSWORD=$(openssl rand -hex 16)
-          export GRAFANA_ADMIN_PASSWORD=$(openssl rand -hex 16)
           # Le conteneur tourne en non-root (uid 10001) ; les dossiers bind-mountés
           # depuis le runner doivent lui être accessibles en écriture (seeding ChromaDB,
           # uploads). Contexte CI éphémère uniquement, sans impact sur l'image livrée.

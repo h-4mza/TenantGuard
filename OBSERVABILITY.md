@@ -22,14 +22,14 @@ flowchart LR
 
 ## ⚡ Démarrage de la Stack
 
-Les services d'observabilité sont isolés sous le profil Docker Compose `observability` afin de ne pas ralentir ni impacter l'environnement de développement standard et les pipelines CI/CD (DAST).
+Les services d'observabilité sont isolés dans un fichier Compose dédié (`docker-compose.observability.yml`) afin de ne pas ralentir ni impacter l'environnement de développement standard et les pipelines CI/CD (DAST), qui n'ont pas besoin de définir de variables d'observabilité.
 
 ### 1. Démarrer toute la stack (App + Observabilité)
 
-Avant de lancer le profil d'observabilité, définissez la variable `GRAFANA_ADMIN_PASSWORD` dans votre fichier `.env` (générez un mot de passe fort avec `openssl rand -base64 24`). Si cette variable n'est pas définie, le démarrage échouera pour des raisons de sécurité.
+Avant de lancer la stack d'observabilité, définissez la variable `GRAFANA_ADMIN_PASSWORD` dans votre fichier `.env` (générez un mot de passe fort avec `openssl rand -base64 24`). Si cette variable n'est pas définie, le démarrage échouera pour des raisons de sécurité.
 
 ```bash
-docker compose --profile observability up -d --build
+docker compose -f docker-compose.yml -f docker-compose.observability.yml up -d --build
 ```
 
 ### 2. Démarrer uniquement l'application et la base (Mode CI / DAST standard)
@@ -39,7 +39,7 @@ docker compose up -d
 ```
 
 > [!NOTE]
-> `docker compose up` (sans profil) démarre exclusivement `tenantguard_db` et `tenantguard_api`.
+> `docker compose up` démarre exclusivement `tenantguard_db` et `tenantguard_api` sans nécessiter de configuration Grafana.
 
 ---
 
@@ -101,7 +101,7 @@ sum by (event) (count_over_time({container="tenantguard_api"} | json | event != 
 Pour arrêter l'ensemble des conteneurs :
 
 ```bash
-docker compose --profile observability down
+docker compose -f docker-compose.yml -f docker-compose.observability.yml down
 ```
 
 ---

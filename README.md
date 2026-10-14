@@ -45,7 +45,7 @@ docker compose up --build
 Pour démarrer l'application avec la **stack d'observabilité complète** (Loki, Promtail, Grafana) :
 
 ```bash
-docker compose --profile observability up -d --build
+docker compose -f docker-compose.yml -f docker-compose.observability.yml up -d --build
 ```
 Consultez le guide [OBSERVABILITY.md](file:///C:/Users/HP/Desktop/TenantGuard/OBSERVABILITY.md) pour les détails d'accès et requêtes LogQL.
 
