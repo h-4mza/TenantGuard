@@ -212,6 +212,10 @@ TenantGuard intègre un système de détection des menaces et d'alerting en temp
   GRAFANA_ADMIN_PASSWORD=secretgrafanapass123 \
   bash scripts/verify_detections.sh
   ```
+- **Simulation d'Incident Réaliste & Post-Mortem** : Scénario d'attaque complet de bout en bout en 4 phases chronologiques avec pauses réalistes pour Loki (`scripts/run_incident.sh`), investigation médico-légale et post-mortem blameless :
+  - **Script de simulation d'incident** : [`scripts/run_incident.sh`](scripts/run_incident.sh)
+  - **Rapport d'investigation médico-légale LogQL** : [`docs/incident/INVESTIGATION.md`](docs/incident/INVESTIGATION.md)
+  - **Post-Mortem de sécurité blameless** : [`docs/incident/POSTMORTEM.md`](docs/incident/POSTMORTEM.md)
 - **Note DAST (CI/CD)** : Dans le workflow GitHub Actions, le job DAST OWASP ZAP Baseline se termine avec le code de sortie `2` (warnings passifs sur les en-têtes HTTP) et est configuré comme informatif.
 
 Pour la documentation complète des règles, des requêtes LogQL et des scénarios de réponse :  
