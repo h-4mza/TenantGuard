@@ -144,5 +144,6 @@ Each detection rule links directly to an actionable runbook located in `docs/run
 TenantGuard provides a complete, reproducible end-to-end incident drill simulating a multi-stage attack campaign across 4 distinct phases (Reconnaissance, Initial Access / ATO, Lateral Movement / IDOR, and Exfiltration / RAG abuse):
 - **Simulation Script**: [`scripts/run_incident.sh`](scripts/run_incident.sh) executes the multi-phase scenario with realistic inter-phase delays.
 - **Forensic Investigation**: [`docs/incident/INVESTIGATION.md`](docs/incident/INVESTIGATION.md) details exact LogQL queries executed against Loki, raw logs, exfiltrated volume analysis, containment verifications, and honest detection limitations.
+- **Containment Evidence**: [`docs/incident/CONTAINMENT_EVIDENCE.md`](docs/incident/CONTAINMENT_EVIDENCE.md) documents raw, untruncated command and log evidence of real account locking and global session revocation.
 - **Blameless Post-Mortem**: [`docs/incident/POSTMORTEM.md`](docs/incident/POSTMORTEM.md) documents the incident summary, real UTC timeline, root cause analysis, detection metrics (MTTD), containment actions, gap analysis, and prioritized corrective actions mapped to MITRE ATT&CK.
 

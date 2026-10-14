@@ -59,8 +59,8 @@ Contrôler si l'IP suspecte s'est connectée avec succès ou a réussi à appele
 Si une suspicion de fuite de tokens existe, invalider immédiatement l'ensemble des jetons en circulation en changeant la clé maîtresse :
 ```bash
 # [Testée] Rotation de JWT_SECRET
-# Mettre à jour JWT_SECRET dans l'environnement et redémarrer l'API
-docker compose restart api
+# Mettre à jour JWT_SECRET dans l'environnement et recréer l'API
+docker compose up -d api
 ```
 
 ### Action B : Blocage IP au pare-feu *(Non testée en local)*

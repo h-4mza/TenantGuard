@@ -8,10 +8,10 @@
 ---
 
 ## 1. Résumé Exécutif
-Le 14 octobre 2026 à 20:07 UTC, une attaque ciblée en provenance de l'adresse IP `172.24.0.1` a compromis le compte administrateur `alice` appartenant au tenant Acme Corp (Tenant 1) via une attaque par force brute / dictionnaire sur l'endpoint `/auth/login`.  
+Le 14 octobre 2026 à 20:23 UTC, une attaque ciblée en provenance de l'adresse IP `172.24.0.1` a compromis le compte administrateur `alice` appartenant au tenant Acme Corp (Tenant 1) via une attaque par force brute / dictionnaire sur l'endpoint `/auth/login`.  
 L'attaquant a ensuite tenté d'accéder aux documents confidentiels d'organisations tierces (CyberDyne Systems), tentatives immédiatement bloquées par l'isolation multi-tenant v1. L'attaquant a ensuite procédé à l'exfiltration massive de 22 lectures/téléchargements du document interne d'Acme Corp (`acme_strategic_acquisition_2026.txt`) et exécuté une requête d'extraction sémantique via le moteur RAG.
 
-L'ensemble des activités hostiles a été détecté en temps réel par les règles Grafana Unified Alerting avec un délai de détection moyen de **42 secondes**. Les mesures de confinement immédiates (verrouillage du compte en base et rotation de la clé maîtresse JWT) ont permis de neutraliser l'adversaire et de révoquer l'ensemble des sessions actives.
+L'ensemble des activités hostiles auditées a été détecté en temps réel par les règles Grafana Unified Alerting avec un délai de détection moyen de **38 secondes**. Les mesures de confinement immédiates testées et validées (verrouillage du compte en base et rotation de la clé maîtresse JWT avec recréation du conteneur API) ont permis de neutraliser l'adversaire et de révoquer l'ensemble des sessions actives (preuves brutes consignées dans `docs/incident/CONTAINMENT_EVIDENCE.md`).
 
 ---
 
@@ -24,34 +24,40 @@ L'ensemble des activités hostiles a été détecté en temps réel par les règ
 
 ## 3. Chronologie des Événements (Horodatages Réels UTC)
 
-| Horodatage UTC | Événement Applicatif | Phase MITRE ATT&CK | Description Technique |
+| Horodatage UTC | Événement Applicatif | Phase MITRE ATT&CK | Description Technique & Source |
 |---|---|---|---|
-| **20:06:59Z** | `GET /health` & `/documents/*` (401) | **Reconnaissance (T1595)** | Sondage de l'API et tentative d'énumération non authentifiée. |
-| **20:07:15Z** | `AUTH_LOGIN_FAILED` (x5) | **Accès Initial (T1110)** | 5 tentatives successives de mot de passe invalide sur `alice`. |
-| **20:07:18Z** | `AUTH_LOGIN_SUCCESS` | **Accès Initial (T1078)** | Connexion réussie pour `alice` (user_id=1, tenant_id=1). Émission du JWT. |
-| **20:07:38Z** | `DOCUMENT_ACCESS_DENIED` (x4) | **Mouvement Latéral (T1078/T1190)** | Tentatives d'accès au document id=3 (CyberDyne) bloquées (HTTP 404). |
-| **20:07:59Z** | `DOCUMENT_LIST` | **Découverte (T1083)** | Énumération des documents du tenant Acme Corp. |
-| **20:08:00Z** | **Alerte `BRUTE_FORCE_LOGIN`** | Détection SOC | Déclenchement de l'alerte High (5 échecs en 5 min). |
-| **20:08:00Z** | **Alerte `ACCOUNT_TAKEOVER_SUSPECT`** | Détection SOC | Déclenchement de l'alerte Critical (5 échecs suivis d'un succès). |
-| **20:08:00Z** | **Alerte `CROSS_TENANT_ACCESS`** | Détection SOC | Déclenchement de l'alerte Critical (4 refus d'accès cross-tenant). |
-| **20:08:01Z** | `DOCUMENT_VIEW` & `DOWNLOAD` (x22) | **Collecte & Exfiltration (T1530)** | 22 accès en rafale au document id=2 d'Acme Corp. |
-| **20:08:17Z** | `RAG_QUERY` | **Exfiltration (T1119)** | Extraction sémantique via le LLM. |
-| **20:09:00Z** | **Alerte `EXFILTRATION_VOLUME`** | Détection SOC | Déclenchement de l'alerte Medium (22 accès en 5 min). |
-| **20:10:00Z** | UPDATE users (PostgreSQL) | **Confinement (Containment)** | Verrouillage du compte `alice` (`DISABLED_`). Login ultérieur refusé. |
-| **20:10:30Z** | Rotation de `JWT_SECRET` | **Confinement (Containment)** | Régénération de la clé maîtresse. Tous les tokens de session sont révoqués. |
+| **20:23:23Z** | Sondage `/health` (200) et `/documents/*` (401) | **Reconnaissance (T1595)** | *(Source : horodatage script — aucun événement d'audit émis pour les requêtes non authentifiées)* Sondage de l'API et énumération non authentifiée. |
+| **20:23:39Z** | `AUTH_LOGIN_FAILED` (x5) | **Accès Initial (T1110)** | *(Source : logs d'audit)* 5 tentatives successives de mot de passe invalide sur `alice`. |
+| **20:23:42Z** | `AUTH_LOGIN_SUCCESS` | **Accès Initial (T1078)** | *(Source : logs d'audit)* Connexion réussie pour `alice` (user_id=1, tenant_id=1). Émission du JWT. |
+| **20:24:03Z** | `DOCUMENT_ACCESS_DENIED` (x4) | **Mouvement Latéral (T1078/T1190)** | *(Source : logs d'audit)* 4 tentatives d'accès au document étranger id=3 (CyberDyne) bloquées (HTTP 404). |
+| **20:24:20Z** | **Alerte `BRUTE_FORCE_LOGIN`** | Détection SOC | Déclenchement de l'alerte High (`startsAt: 2026-10-14T20:24:20Z`). |
+| **20:24:20Z** | **Alerte `ACCOUNT_TAKEOVER_SUSPECT`** | Détection SOC | Déclenchement de l'alerte Critical (`startsAt: 2026-10-14T20:24:20Z`). |
+| **20:24:20Z** | **Alerte `CROSS_TENANT_ACCESS`** | Détection SOC | Déclenchement de l'alerte Critical (`startsAt: 2026-10-14T20:24:20Z`). |
+| **20:24:24Z** | `DOCUMENT_LIST` | **Découverte (T1083)** | *(Source : logs d'audit)* Énumération des documents du tenant Acme Corp. |
+| **20:24:24Z** | `DOCUMENT_VIEW` (doc id=2) | **Collecte & Exfiltration (T1530)** | **Premier log d'exfiltration réel** (`20:24:24.293Z`, prouvé par requête LogQL). |
+| **20:24:24Z** à **20:24:26Z** | `DOCUMENT_VIEW` & `DOWNLOAD` (x22) | **Collecte & Exfiltration (T1530)** | *(Source : logs d'audit)* 22 accès documentaires en rafale sur le document id=2 d'Acme Corp. |
+| **20:24:34Z** | `RAG_QUERY` | **Exfiltration (T1119)** | *(Source : logs d'audit)* Extraction sémantique via le LLM (`20:24:34.577Z`). |
+| **20:25:20Z** | **Alerte `EXFILTRATION_VOLUME`** | Détection SOC | Déclenchement de l'alerte Medium (`startsAt: 2026-10-14T20:25:20Z`). |
+| **20:27:11Z** | Verrouillage compte PostgreSQL | **Confinement (Containment)** | *(Testée — reproduit dans `CONTAINMENT_EVIDENCE.md`)* `UPDATE users SET hashed_password = 'DISABLED_'...`. Login ultérieur rejeté avec 401 Unauthorized (`AUTH_LOGIN_FAILED`). |
+| **20:27:13Z** à **20:27:20Z** | Rotation `JWT_SECRET` + recreate API | **Confinement (Containment)** | *(Testée — reproduit dans `CONTAINMENT_EVIDENCE.md`)* `sed -i ... .env` et `docker compose up -d api`. Requête avec jeton attaquant rejetée avec 401 ("invalid token signature"). |
 
 ---
 
 ## 4. Analyse des Délais de Détection (MTTD)
 
-| Règle d'Alerte | Sévérité | Début de l'action hostile | Déclenchement de l'alerte | Délai de Détection Mesuré |
-|---|---|---|---|---|
-| **BRUTE_FORCE_LOGIN** | High | 20:07:15Z | 20:08:00Z | **45 secondes** |
-| **ACCOUNT_TAKEOVER_SUSPECT** | Critical | 20:07:18Z (Succès) | 20:08:00Z | **42 secondes** |
-| **CROSS_TENANT_ACCESS** | Critical | 20:07:38Z | 20:08:00Z | **22 secondes** |
-| **EXFILTRATION_VOLUME** | Medium | 20:07:59Z | 20:09:00Z | **61 secondes (1 min 01s)** |
+Le calcul s'appuie strictement sur le premier timestamp réel issu des logs d'audit pour chaque événement hostile :
 
-*Moyenne MTTD (Mean Time To Detect) :* **42,5 secondes**.
+| Règle d'Alerte | Sévérité | Début réel de l'action hostile (Logs) | Déclenchement de l'alerte (`startsAt`) | Délai de Détection Mesuré |
+|---|---|---|---|---|
+| **BRUTE_FORCE_LOGIN** | High | `20:23:39Z` (`AUTH_LOGIN_FAILED`) | `20:24:20Z` | **41 secondes** |
+| **ACCOUNT_TAKEOVER_SUSPECT** | Critical | `20:23:42Z` (`AUTH_LOGIN_SUCCESS`) | `20:24:20Z` | **38 secondes** |
+| **CROSS_TENANT_ACCESS** | Critical | `20:24:03Z` (`DOCUMENT_ACCESS_DENIED`) | `20:24:20Z` | **17 secondes** |
+| **EXFILTRATION_VOLUME** | Medium | `20:24:24Z` (Premier log `DOCUMENT_VIEW` doc 2) | `20:25:20Z` | **56 secondes** |
+
+- **Requête LogQL de preuve du début d'exfiltration :**  
+  `{container="tenantguard_api"} | json | user_id="1" | event =~ "DOCUMENT_VIEW|DOCUMENT_DOWNLOAD"`  
+  -> Premier résultat renvoyé : timestamp `2026-10-14T20:24:24.293606+00:00` (événement `DOCUMENT_VIEW` sur `document_id=2`).
+- **Moyenne MTTD (Mean Time To Detect) :** **38,0 secondes** ((41 + 38 + 17 + 56) / 4).
 
 ---
 
@@ -68,12 +74,16 @@ L'ensemble des activités hostiles a été détecté en temps réel par les règ
 ## 6. Ce qui a bien fonctionné
 - **Efficacité de l'isolation multi-tenant v1 :** 100% des requêtes cross-tenant ont été bloquées au niveau de la couche SQLAlchemy (`filter(Document.tenant_id == current_user.tenant_id)`), préservant totalement les autres tenants.
 - **Télémétrie d'audit structurée JSON :** Tous les événements critiques ont été enrichis avec `user_id`, `tenant_id`, `ip` et `document_id`, permettant une investigation immédiate dans Loki sans ambiguïté.
-- **Précision des alertes Grafana Unified Alerting :** Les 4 règles correspondant aux actions hostiles ont toutes transité à l'état `Firing` dès leur première fenêtre d'évaluation de 1 minute.
-- **Réactivité du confinement :** La neutralisation du compte en base et l'invalidation globale de session ont pris effet instantanément.
+- **Précision des alertes Grafana Unified Alerting :** Les 4 règles correspondant aux actions hostiles auditées ont toutes transité à l'état `Firing` dès leur première fenêtre d'évaluation de 1 minute.
+- **Réactivité du confinement réel :** La neutralisation du compte en base et l'invalidation globale de session ont été testées avec succès sur la stack et consignées dans `docs/incident/CONTAINMENT_EVIDENCE.md`.
 
 ---
 
 ## 7. Ce qui a manqué (Angles Morts & Limites)
+- **Invisibilité des jetons invalides ou falsifiés :**  
+  Conformément à `app/auth.py`, seule l'exception `jwt.ExpiredSignatureError` émet un événement d'audit `AUTH_TOKEN_EXPIRED`. L'exception `jwt.InvalidTokenError` (jeton forgé ou devenu invalide après rotation de secret) n'émet **aucun événement d'audit JSON**, consignant seulement un log texte standard dans uvicorn. Ni `TOKEN_ABUSE` ni aucune autre règle n'a de visibilité sur les rejeux de faux tokens.
+- **Invisibilité des requêtes non authentifiées (Reconnaissance) :**  
+  Les requêtes HTTP 401 ("Authentication required") sur `/documents` n'émettent aucun événement d'audit structuré. La Phase 1 de reconnaissance est donc totalement absente des flux Loki (invisible, et non "sous le seuil").
 - **Mécanisme natif de révocation de jeton individuel :**  
   L'application ne dispose pas d'une liste de révocation (blacklist Redis ou table de révocation JWT) ; pour invalider la session de l'attaquant, l'équipe a dû procéder à une rotation globale de `JWT_SECRET`, invalidant par ricochet les sessions des utilisateurs légitimes.
 - **Visibilité sur le contenu des réponses RAG :**  
@@ -89,9 +99,11 @@ L'ensemble des activités hostiles a été détecté en temps réel par les règ
 |---|---|---|---|---|
 | **ACT-01** | **P0** | Implémenter un rate-limiting strict par IP et par compte sur `/auth/login` (ex: `slowapi` / Redis token bucket). | `@backend-eng` | J+3 |
 | **ACT-02** | **P0** | Développer un endpoint et un intercepteur de révocation de jetons individuels (blacklist basée sur le claim `jti`). | `@sec-lead` | J+7 |
-| **ACT-03** | **P1** | Intégrer l'authentification multifacteur (TOTP MFA / WebAuthn) pour les comptes administrateurs. | `@backend-eng` | J+14 |
-| **ACT-04** | **P1** | Enrichir l'événement `RAG_QUERY` avec les métadonnées de volume et taille de réponse sans journaliser les secrets métier. | `@sec-lead` | J+7 |
-| **ACT-05** | **P2** | Déployer un reverse proxy frontal Nginx / WAF avec module ModSecurity et gestion stricte des en-têtes `X-Forwarded-For`. | `@infra-sre` | J+21 |
+| **ACT-03** | **P1** | **Émettre un événement d'audit structuré `AUTH_TOKEN_INVALID`** lors des rejets de tokens à signature invalide (`jwt.InvalidTokenError`), avec règle d'alerte associée. *(Action future)* | `@backend-eng` | J+5 |
+| **ACT-04** | **P1** | **Émettre un événement d'audit structuré `AUTH_UNAUTHENTICATED_ACCESS`** lors des requêtes 401 non authentifiées sur les routes protégées pour tracer la reconnaissance, avec règle d'alerte associée. *(Action future)* | `@backend-eng` | J+5 |
+| **ACT-05** | **P1** | Intégrer l'authentification multifacteur (TOTP MFA / WebAuthn) pour les comptes administrateurs. | `@backend-eng` | J+14 |
+| **ACT-06** | **P1** | Enrichir l'événement `RAG_QUERY` avec les métadonnées de volume et taille de réponse sans journaliser les secrets métier. | `@sec-lead` | J+7 |
+| **ACT-07** | **P2** | Déployer un reverse proxy frontal Nginx / WAF avec module ModSecurity et gestion stricte des en-têtes `X-Forwarded-For`. | `@infra-sre` | J+21 |
 
 ---
 
@@ -99,9 +111,10 @@ L'ensemble des activités hostiles a été détecté en temps réel par les règ
 
 | Phase de l'Attaque | Tactique MITRE | Technique & ID | Détection Associée |
 |---|---|---|---|
-| **Phase 1** | Reconnaissance | Active Scanning ([T1595](https://attack.mitre.org/techniques/T1595/)) | Logs d'accès HTTP 401 |
+| **Phase 1** | Reconnaissance | Active Scanning ([T1595](https://attack.mitre.org/techniques/T1595/)) | Non audité dans Loki (visible uniquement dans les logs bruts HTTP de reverse proxy) |
 | **Phase 2** | Credential Access | Brute Force ([T1110](https://attack.mitre.org/techniques/T1110/)) | `BRUTE_FORCE_LOGIN` |
 | **Phase 2** | Defense Evasion | Valid Accounts ([T1078](https://attack.mitre.org/techniques/T1078/)) | `ACCOUNT_TAKEOVER_SUSPECT` |
 | **Phase 3** | Lateral Movement | Exploit Public App ([T1190](https://attack.mitre.org/techniques/T1190/)) | `CROSS_TENANT_ACCESS` |
 | **Phase 4** | Collection | Data from Cloud Storage ([T1530](https://attack.mitre.org/techniques/T1530/)) | `EXFILTRATION_VOLUME` |
 | **Phase 4** | Exfiltration | Automated Collection ([T1119](https://attack.mitre.org/techniques/T1119/)) | Audit `RAG_QUERY` |
+

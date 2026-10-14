@@ -83,8 +83,8 @@ Si une suspicion de fuite de session existe, forcer la révocation globale des j
 ```bash
 # [Testée] Rotation du secret JWT et redémarrage de l'API
 # 1. Remplacer JWT_SECRET dans .env avec une nouvelle clé >= 32 caractères
-# 2. Redémarrer le service API
-docker compose restart api
+# 2. Recréer le service API pour appliquer la variable d'environnement
+docker compose up -d api
 ```
 
 ---
@@ -94,7 +94,7 @@ docker compose restart api
 2. **Récupération :**
    - Si le compte a été verrouillé en base, générer un nouveau mot de passe robuste et rétablir le compte :
      ```bash
-     # [Testée] Réinitialisation d'un mot de passe sécurisé via script de hachage
+     # [Non testée] Réinitialisation d'un mot de passe sécurisé via script de hachage
      docker compose exec -T api python -c "from app.auth import hash_password; from app.database import SessionLocal; from app.models import User; db=SessionLocal(); u=db.query(User).filter_by(username='<USERNAME_CIBLE>').first(); u.hashed_password=hash_password('<NOUVEAU_MOT_DE_PASSE>'); db.commit(); print('Mot de passe mis à jour')"
      ```
    - Forcer la réinitialisation du mot de passe par l'utilisateur légitime lors de son prochain accès.

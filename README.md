@@ -215,7 +215,9 @@ TenantGuard intègre un système de détection des menaces et d'alerting en temp
 - **Simulation d'Incident Réaliste & Post-Mortem** : Scénario d'attaque complet de bout en bout en 4 phases chronologiques avec pauses réalistes pour Loki (`scripts/run_incident.sh`), investigation médico-légale et post-mortem blameless :
   - **Script de simulation d'incident** : [`scripts/run_incident.sh`](scripts/run_incident.sh)
   - **Rapport d'investigation médico-légale LogQL** : [`docs/incident/INVESTIGATION.md`](docs/incident/INVESTIGATION.md)
+  - **Preuves réelles de confinement** : [`docs/incident/CONTAINMENT_EVIDENCE.md`](docs/incident/CONTAINMENT_EVIDENCE.md)
   - **Post-Mortem de sécurité blameless** : [`docs/incident/POSTMORTEM.md`](docs/incident/POSTMORTEM.md)
+
 - **Note DAST (CI/CD)** : Dans le workflow GitHub Actions, le job DAST OWASP ZAP Baseline se termine avec le code de sortie `2` (warnings passifs sur les en-têtes HTTP) et est configuré comme informatif.
 
 Pour la documentation complète des règles, des requêtes LogQL et des scénarios de réponse :  

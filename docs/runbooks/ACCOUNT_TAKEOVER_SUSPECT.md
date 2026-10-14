@@ -76,8 +76,8 @@ L'application ne disposant pas d'une liste de révocation dynamique de tokens (b
 ```bash
 # [Testée] Invalidation globale des jetons par rotation du JWT_SECRET
 # 1. Remplacer JWT_SECRET par un nouveau secret fort dans .env
-# 2. Redémarrer l'API
-docker compose restart api
+# 2. Recréer l'API pour appliquer la variable
+docker compose up -d api
 ```
 
 ### Action C : Blocage de l'IP attaquante au pare-feu *(Non testée en local)*

@@ -34,7 +34,7 @@ sum by (document_id, event) (count_over_time({container="tenantguard_api"} | jso
 ```
 Récupérer les métadonnées et la criticité de ces documents dans PostgreSQL :
 ```bash
-# [Testée] Extraction des métadonnées des documents touchés
+# [Non testée] Extraction des métadonnées des documents touchés
 docker compose exec -T db psql -U tenantguard -d tenantguard_db -c "SELECT id, filename, tenant_id, file_path, created_at FROM documents WHERE id IN (<LISTE_DOC_IDS>);"
 ```
 
@@ -65,8 +65,8 @@ Provoquer l'invalidation globale de la session pour stopper net le flux d'exfilt
 ```bash
 # [Testée] Invalidation globale par rotation de secret JWT
 # 1. Remplacer JWT_SECRET dans .env
-# 2. Redémarrer l'API
-docker compose restart api
+# 2. Recréer l'API pour appliquer la variable
+docker compose up -d api
 ```
 
 ### Action B : Désactivation administrative du compte en base *(Testée)*

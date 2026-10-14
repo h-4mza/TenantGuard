@@ -34,7 +34,7 @@ sum by (document_id) (count_over_time({container="tenantguard_api"} | json | use
 ```
 Vérifier dans PostgreSQL à qui appartiennent réellement ces documents :
 ```bash
-# [Testée] Identification des propriétaires légitimes des documents ciblés
+# [Non testée] Identification des propriétaires légitimes des documents ciblés
 docker compose exec -T db psql -U tenantguard -d tenantguard_db -c "SELECT id, filename, tenant_id FROM documents WHERE id IN (1, 2, 3, <DOC_IDS_CIBLES>);"
 ```
 
@@ -75,8 +75,8 @@ L'application ne disposant pas d'une liste de révocation dynamique de tokens (b
 ```bash
 # [Testée] Invalidation globale par rotation de clé JWT
 # 1. Mettre à jour JWT_SECRET dans le fichier .env
-# 2. Redémarrer l'API
-docker compose restart api
+# 2. Recréer l'API pour appliquer la nouvelle variable
+docker compose up -d api
 ```
 
 ### Action C : Blocage réseau de l'IP de l'attaquant *(Non testée en local)*

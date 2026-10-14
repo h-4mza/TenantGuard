@@ -36,7 +36,7 @@ sum by (username) (count_over_time({container="tenantguard_api"} | json | ip="<I
 ### Étape 3 : Corréler avec la base utilisateurs existante
 Vérifier dans PostgreSQL si les comptes ciblés correspondent à de vrais comptes de la plateforme :
 ```bash
-# [Testée] Vérification de l'existence des comptes ciblés
+# [Non testée] Vérification de l'existence des comptes ciblés
 docker compose exec -T db psql -U tenantguard -d tenantguard_db -c "SELECT id, username, tenant_id FROM users WHERE username IN ('user1', 'user2', '<USERNAMES_TESTES>');"
 ```
 
@@ -76,10 +76,10 @@ Pour tout compte légitime ayant fait l'objet du spray :
 docker compose exec -T db psql -U tenantguard -d tenantguard_db -c "UPDATE users SET hashed_password = 'LOCKED_' || hashed_password WHERE username = '<USERNAME_COMPROMIS>';"
 ```
 
-### Action C : Suppression d'un compte compromis ou suspect *(Testée)*
+### Action C : Suppression d'un compte compromis ou suspect *(Non testée)*
 Dans le cas où un compte factice a été créé par l'attaquant :
 ```bash
-# [Testée] Suppression du compte en base de données
+# [Non testée] Suppression du compte en base de données
 docker compose exec -T db psql -U tenantguard -d tenantguard_db -c "DELETE FROM users WHERE username = '<USERNAME_A_SUPPRIMER>';"
 ```
 

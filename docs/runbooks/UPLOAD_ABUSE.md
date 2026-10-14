@@ -40,7 +40,7 @@ Vérifier si l'utilisateur a réussi à téléverser un fichier valide juste apr
 ```
 Si un document a été accepté, vérifier son enregistrement en base et son stockage physique :
 ```bash
-# [Testée] Inspection du document récemment créé en base
+# [Non testée] Inspection du document récemment créé en base
 docker compose exec -T db psql -U tenantguard -d tenantguard_db -c "SELECT id, filename, file_path, tenant_id, created_at FROM documents WHERE tenant_id = <TENANT_ID> ORDER BY id DESC LIMIT 5;"
 ```
 
@@ -61,15 +61,15 @@ docker compose exec -T db psql -U tenantguard -d tenantguard_db -c "SELECT id, f
 
 ## 6. Mesures de Confinement (Containment)
 
-### Action A : Suppression ou quarantaine d'un document suspect *(Testée)*
+### Action A : Suppression ou quarantaine d'un document suspect *(Non testée)*
 Si un fichier téléversé par cet utilisateur présente une anomalie, le supprimer immédiatement de la base et du disque :
 ```bash
-# [Testée] Suppression du document en base
+# [Non testée] Suppression du document en base
 docker compose exec -T db psql -U tenantguard -d tenantguard_db -c "DELETE FROM documents WHERE id = <DOC_ID_SUSPECT>;"
 ```
 Purger également le fichier physique dans le conteneur :
 ```bash
-# [Testée] Suppression du fichier sur le système de fichiers du conteneur API
+# [Non testée] Suppression du fichier sur le système de fichiers du conteneur API
 docker compose exec -T api rm -f /app/uploads/<NOM_FICHIER_UNIQUE>
 ```
 
