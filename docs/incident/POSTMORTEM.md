@@ -26,20 +26,20 @@ L'ensemble des activités hostiles auditées a été détecté en temps réel pa
 
 | Horodatage UTC | Événement Applicatif | Phase MITRE ATT&CK | Description Technique & Source |
 |---|---|---|---|
-| **20:23:23Z** | Sondage `/health` (200) et `/documents/*` (401) | **Reconnaissance (T1595)** | *(Source : horodatage script — aucun événement d'audit émis pour les requêtes non authentifiées)* Sondage de l'API et énumération non authentifiée. |
-| **20:23:39Z** | `AUTH_LOGIN_FAILED` (x5) | **Accès Initial (T1110)** | *(Source : logs d'audit)* 5 tentatives successives de mot de passe invalide sur `alice`. |
-| **20:23:42Z** | `AUTH_LOGIN_SUCCESS` | **Accès Initial (T1078)** | *(Source : logs d'audit)* Connexion réussie pour `alice` (user_id=1, tenant_id=1). Émission du JWT. |
-| **20:24:03Z** | `DOCUMENT_ACCESS_DENIED` (x4) | **Mouvement Latéral (T1078/T1190)** | *(Source : logs d'audit)* 4 tentatives d'accès au document étranger id=3 (CyberDyne) bloquées (HTTP 404). |
-| **20:24:20Z** | **Alerte `BRUTE_FORCE_LOGIN`** | Détection SOC | Déclenchement de l'alerte High (`startsAt: 2026-10-14T20:24:20Z`). |
-| **20:24:20Z** | **Alerte `ACCOUNT_TAKEOVER_SUSPECT`** | Détection SOC | Déclenchement de l'alerte Critical (`startsAt: 2026-10-14T20:24:20Z`). |
-| **20:24:20Z** | **Alerte `CROSS_TENANT_ACCESS`** | Détection SOC | Déclenchement de l'alerte Critical (`startsAt: 2026-10-14T20:24:20Z`). |
-| **20:24:24Z** | `DOCUMENT_LIST` | **Découverte (T1083)** | *(Source : logs d'audit)* Énumération des documents du tenant Acme Corp. |
-| **20:24:24Z** | `DOCUMENT_VIEW` (doc id=2) | **Collecte & Exfiltration (T1530)** | **Premier log d'exfiltration réel** (`20:24:24.293Z`, prouvé par requête LogQL). |
-| **20:24:24Z** à **20:24:26Z** | `DOCUMENT_VIEW` & `DOWNLOAD` (x22) | **Collecte & Exfiltration (T1530)** | *(Source : logs d'audit)* 22 accès documentaires en rafale sur le document id=2 d'Acme Corp. |
-| **20:24:34Z** | `RAG_QUERY` | **Exfiltration (T1119)** | *(Source : logs d'audit)* Extraction sémantique via le LLM (`20:24:34.577Z`). |
-| **20:25:20Z** | **Alerte `EXFILTRATION_VOLUME`** | Détection SOC | Déclenchement de l'alerte Medium (`startsAt: 2026-10-14T20:25:20Z`). |
-| **20:27:11Z** | Verrouillage compte PostgreSQL | **Confinement (Containment)** | *(Testée — reproduit dans `CONTAINMENT_EVIDENCE.md`)* `UPDATE users SET hashed_password = 'DISABLED_'...`. Login ultérieur rejeté avec 401 Unauthorized (`AUTH_LOGIN_FAILED`). |
-| **20:27:13Z** à **20:27:20Z** | Rotation `JWT_SECRET` + recreate API | **Confinement (Containment)** | *(Testée — reproduit dans `CONTAINMENT_EVIDENCE.md`)* `sed -i ... .env` et `docker compose up -d api`. Requête avec jeton attaquant rejetée avec 401 ("invalid token signature"). |
+| **12:03:41Z** | Sondage `/health` (200) et `/documents/*` (401) | **Reconnaissance (T1595)** | *(Source : horodatage script — aucun événement d'audit émis pour les requêtes non authentifiées)* Sondage de l'API et énumération non authentifiée. |
+| **12:03:59Z** | `AUTH_LOGIN_FAILED` (x5) | **Accès Initial (T1110)** | *(Source : logs d'audit)* 5 tentatives successives de mot de passe invalide sur `alice`. |
+| **12:04:02Z** | `AUTH_LOGIN_SUCCESS` | **Accès Initial (T1078)** | *(Source : logs d'audit)* Connexion réussie pour `alice` (user_id=1, tenant_id=1). Émission du JWT. |
+| **12:04:26Z** | `DOCUMENT_ACCESS_DENIED` (x4) | **Mouvement Latéral (T1078/T1190)** | *(Source : logs d'audit)* 4 tentatives d'accès au document étranger id=3 (CyberDyne) bloquées (HTTP 404). |
+| **12:04:50Z** | **Alerte `BRUTE_FORCE_LOGIN`** | Détection SOC | Déclenchement de l'alerte High (`startsAt: 2026-10-15T12:04:50Z`). |
+| **12:04:50Z** | **Alerte `ACCOUNT_TAKEOVER_SUSPECT`** | Détection SOC | Déclenchement de l'alerte Critical (`startsAt: 2026-10-15T12:04:50Z`). |
+| **12:04:50Z** | **Alerte `CROSS_TENANT_ACCESS`** | Détection SOC | Déclenchement de l'alerte Critical (`startsAt: 2026-10-15T12:04:50Z`). |
+| **12:04:47Z** | `DOCUMENT_LIST` | **Découverte (T1083)** | *(Source : logs d'audit)* Énumération des documents du tenant Acme Corp. |
+| **12:04:47Z** | `DOCUMENT_VIEW` (doc id=2) | **Collecte & Exfiltration (T1530)** | **Premier log d'exfiltration réel** (`12:04:47.710Z`, prouvé par requête LogQL). |
+| **12:04:47Z** à **12:04:50Z** | `DOCUMENT_VIEW` & `DOWNLOAD` (x22) | **Collecte & Exfiltration (T1530)** | *(Source : logs d'audit)* 22 accès documentaires en rafale sur le document id=2 d'Acme Corp. |
+| **12:04:52Z** | `RAG_QUERY` | **Exfiltration (T1119)** | *(Source : logs d'audit)* Extraction sémantique via le LLM (`12:04:52.884Z`). |
+| **12:05:50Z** | **Alerte `EXFILTRATION_VOLUME`** | Détection SOC | Déclenchement de l'alerte Medium (`startsAt: 2026-10-15T12:05:50Z`). |
+| **Confinement** | Verrouillage compte PostgreSQL | **Confinement (Containment)** | *(Testée — reproduit dans `CONTAINMENT_EVIDENCE.md`)* `UPDATE users SET hashed_password = 'DISABLED_'...`. Login ultérieur rejeté avec 401 Unauthorized (`AUTH_LOGIN_FAILED`). |
+| **Confinement** | Rotation `JWT_SECRET` + recreate API | **Confinement (Containment)** | *(Testée — reproduit dans `CONTAINMENT_EVIDENCE.md`)* `sed -i ... .env` et `docker compose up -d api`. Requête avec jeton émis avant rotation rejetée avec 401 ("invalid token signature"). |
 
 ---
 
@@ -49,15 +49,15 @@ Le calcul s'appuie strictement sur le premier timestamp réel issu des logs d'au
 
 | Règle d'Alerte | Sévérité | Début réel de l'action hostile (Logs) | Déclenchement de l'alerte (`startsAt`) | Délai de Détection Mesuré |
 |---|---|---|---|---|
-| **BRUTE_FORCE_LOGIN** | High | `20:23:39Z` (`AUTH_LOGIN_FAILED`) | `20:24:20Z` | **41 secondes** |
-| **ACCOUNT_TAKEOVER_SUSPECT** | Critical | `20:23:42Z` (`AUTH_LOGIN_SUCCESS`) | `20:24:20Z` | **38 secondes** |
-| **CROSS_TENANT_ACCESS** | Critical | `20:24:03Z` (`DOCUMENT_ACCESS_DENIED`) | `20:24:20Z` | **17 secondes** |
-| **EXFILTRATION_VOLUME** | Medium | `20:24:24Z` (Premier log `DOCUMENT_VIEW` doc 2) | `20:25:20Z` | **56 secondes** |
+| **BRUTE_FORCE_LOGIN** | High | `12:03:59Z` (`AUTH_LOGIN_FAILED`) | `12:04:50Z` | **51 secondes** |
+| **ACCOUNT_TAKEOVER_SUSPECT** | Critical | `12:04:02Z` (`AUTH_LOGIN_SUCCESS`) | `12:04:50Z` | **48 secondes** |
+| **CROSS_TENANT_ACCESS** | Critical | `12:04:26Z` (`DOCUMENT_ACCESS_DENIED`) | `12:04:50Z` | **24 secondes** |
+| **EXFILTRATION_VOLUME** | Medium | `12:04:47Z` (Premier log `DOCUMENT_VIEW` doc 2) | `12:05:50Z` | **63 secondes** |
 
 - **Requête LogQL de preuve du début d'exfiltration :**  
   `{container="tenantguard_api"} | json | user_id="1" | event =~ "DOCUMENT_VIEW|DOCUMENT_DOWNLOAD"`  
-  -> Premier résultat renvoyé : timestamp `2026-10-14T20:24:24.293606+00:00` (événement `DOCUMENT_VIEW` sur `document_id=2`).
-- **Moyenne MTTD (Mean Time To Detect) :** **38,0 secondes** ((41 + 38 + 17 + 56) / 4).
+  -> Premier résultat renvoyé : timestamp `2026-10-15T12:04:47.710324+00:00` (événement `DOCUMENT_VIEW` sur `document_id=2`).
+- **Moyenne MTTD (Mean Time To Detect) :** **46,5 secondes** ((51 + 48 + 24 + 63) / 4).
 
 ---
 

@@ -81,6 +81,8 @@ tenantguard_api  | {"timestamp": "2026-10-14T20:27:11.831212+00:00", "level": "W
 
 ## 2. Révocation globale des sessions actives par rotation de `JWT_SECRET`
 
+> *Note méthodologique :* Conformément au script `scripts/test_containment.sh`, le compte d'alice ayant été préalablement verrouillé en base lors du premier test (section 1), la rotation de secret a été testée avec le jeton de bob comme représentant d'un jeton valide émis avant la rotation ; le mécanisme cryptographique d'invalidation est rigoureusement identique pour le jeton d'alice ou tout autre compte.
+
 ### a. Requête AVANT rotation avec le jeton porteur de l'attaquant
 Requête HTTP :
 ```http

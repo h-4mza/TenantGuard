@@ -13,16 +13,16 @@ Ce document consigne l'analyse médico-légale réalisée suite à la compromiss
   ```
 - **Statut API Loki :** `success` | **Type de résultat :** `streams` | **Streams retournés :** 34
 - **Extrait chronologique des événements :**
-  1. `2026-10-14T20:23:39.635Z` — `AUTH_LOGIN_FAILED` : Échec pour l'utilisateur `alice` (mot de passe invalide).
-  2. `2026-10-14T20:23:40.170Z` — `AUTH_LOGIN_FAILED` : 2e échec consécutif sur `alice`.
-  3. `2026-10-14T20:23:40.640Z` — `AUTH_LOGIN_FAILED` : 3e échec consécutif sur `alice`.
-  4. `2026-10-14T20:23:41.157Z` — `AUTH_LOGIN_FAILED` : 4e échec consécutif sur `alice`.
-  5. `2026-10-14T20:23:41.678Z` — `AUTH_LOGIN_FAILED` : 5e échec consécutif sur `alice`.
-  6. `2026-10-14T20:23:42.269Z` — `AUTH_LOGIN_SUCCESS` : **Succès d'authentification pour `alice` (user_id=1, tenant_id=1)**.
-  7. `2026-10-14T20:24:03.649Z` à `20:24:03.958Z` — `DOCUMENT_ACCESS_DENIED` : 4 tentatives consécutives de lecture du document id=3 (CyberDyne).
-  8. `2026-10-14T20:24:24.206Z` — `DOCUMENT_LIST` : Énumération de la liste des documents d'Acme Corp.
-  9. `2026-10-14T20:24:24.293Z` à `20:24:26.549Z` — 22 événements alternés de `DOCUMENT_VIEW` et `DOCUMENT_DOWNLOAD` sur le document id=2.
-  10. `2026-10-14T20:24:34.577Z` — `RAG_QUERY` : Requête sémantique d'extraction RAG.
+  1. `2026-10-15T12:03:59.707Z` — `AUTH_LOGIN_FAILED` : Échec pour l'utilisateur `alice` (mot de passe invalide).
+  2. `2026-10-15T12:04:00.366Z` — `AUTH_LOGIN_FAILED` : 2e échec consécutif sur `alice`.
+  3. `2026-10-15T12:04:00.847Z` — `AUTH_LOGIN_FAILED` : 3e échec consécutif sur `alice`.
+  4. `2026-10-15T12:04:01.579Z` — `AUTH_LOGIN_FAILED` : 4e échec consécutif sur `alice`.
+  5. `2026-10-15T12:04:02.121Z` — `AUTH_LOGIN_FAILED` : 5e échec consécutif sur `alice`.
+  6. `2026-10-15T12:04:02.779Z` — `AUTH_LOGIN_SUCCESS` : **Succès d'authentification pour `alice` (user_id=1, tenant_id=1)**.
+  7. `2026-10-15T12:04:26.370Z` à `12:04:27.053Z` — `DOCUMENT_ACCESS_DENIED` : 4 tentatives consécutives de lecture du document id=3 (CyberDyne).
+  8. `2026-10-15T12:04:47.480Z` — `DOCUMENT_LIST` : Énumération de la liste des documents d'Acme Corp.
+  9. `2026-10-15T12:04:47.710Z` à `12:04:50.741Z` — 22 événements alternés de `DOCUMENT_VIEW` et `DOCUMENT_DOWNLOAD` sur le document id=2.
+  10. `2026-10-15T12:04:52.884Z` — `RAG_QUERY` : Requête sémantique d'extraction RAG.
 
 ---
 
@@ -31,8 +31,8 @@ Ce document consigne l'analyse médico-légale réalisée suite à la compromiss
   ```logql
   {container="tenantguard_api"} | json | user_id="1"
   ```
-- **Statut API Loki :** `success` | **Type de résultat :** `streams` | **Streams retournés :** 29
-- **Analyse :** Tous les événements post-authentification sont strictement rattachés à `user_id="1"` (`alice`). L'utilisateur n'émet aucun événement avant `2026-10-14T20:23:42.269Z` (heure de la première connexion réussie).
+- **Statut API Loki :** `success` | **Type de résultat :** `streams` | **Streams retournés :** 28
+- **Analyse :** Tous les événements post-authentification sont strictement rattachés à `user_id="1"` (`alice`). L'utilisateur n'émet aucun événement avant `2026-10-15T12:04:02.779Z` (heure de la première connexion réussie).
 
 ---
 
@@ -44,11 +44,11 @@ Ce document consigne l'analyse médico-légale réalisée suite à la compromiss
   ```
 - **Statut API Loki :** `success` | **Type de résultat :** `streams` | **Streams retournés :** 6
 - **Extraction précise du premier succès :**
-  - **Timestamp UTC :** `2026-10-14T20:23:42.269728+00:00`
+  - **Timestamp UTC :** `2026-10-15T12:04:02.779570+00:00`
   - **Payload d'audit JSON :**
     ```json
     {
-      "timestamp": "2026-10-14T20:23:42.269728+00:00",
+      "timestamp": "2026-10-15T12:04:02.779570+00:00",
       "level": "INFO",
       "logger": "tenantguard.audit",
       "event": "AUTH_LOGIN_SUCCESS",
@@ -59,7 +59,7 @@ Ce document consigne l'analyse médico-légale réalisée suite à la compromiss
       "ip": "172.24.0.1"
     }
     ```
-- **Constat d'incident :** Le succès survient immédiatement après 5 échecs consécutifs en l'espace de 2,6 secondes, confirmant une attaque par dictionnaire / force brute ayant abouti à la compromission du compte.
+- **Constat d'incident :** Le succès survient immédiatement après 5 échecs consécutifs en l'espace de 3,0 secondes, confirmant une attaque par dictionnaire / force brute ayant abouti à la compromission du compte.
 
 ---
 
@@ -76,7 +76,7 @@ Ce document consigne l'analyse médico-légale réalisée suite à la compromiss
 - **Payload d'audit type :**
   ```json
   {
-    "timestamp": "2026-10-14T20:24:03.649758+00:00",
+    "timestamp": "2026-10-15T12:04:26.370227+00:00",
     "level": "WARNING",
     "logger": "tenantguard.audit",
     "event": "DOCUMENT_ACCESS_DENIED",
@@ -108,12 +108,12 @@ Ce document consigne l'analyse médico-légale réalisée suite à la compromiss
   ```
 - **Statut API Loki :** `success` | **Type de résultat :** `streams` | **Streams retournés :** 22
 - **Premier événement d'exfiltration identifié dans les logs :**
-  - **Timestamp exact :** `2026-10-14T20:24:24.293606+00:00`
+  - **Timestamp exact :** `2026-10-15T12:04:47.710324+00:00`
   - **Événement :** `DOCUMENT_VIEW` sur le document `document_id=2`
   - **Payload :**
     ```json
     {
-      "timestamp": "2026-10-14T20:24:24.293606+00:00",
+      "timestamp": "2026-10-15T12:04:47.710324+00:00",
       "level": "INFO",
       "logger": "tenantguard.audit",
       "event": "DOCUMENT_VIEW",
@@ -134,7 +134,7 @@ Ce document consigne l'analyse médico-légale réalisée suite à la compromiss
 - **Détail du volume :**
   - `DOCUMENT_DOWNLOAD` : **11 opérations**
   - `DOCUMENT_VIEW` : **11 opérations**
-  - **Total :** **22 opérations d'accès documentaire en rafale** en moins de 3 secondes (`20:24:24.293Z` à `20:24:26.549Z`).
+  - **Total :** **22 opérations d'accès documentaire en rafale** en moins de 4 secondes (`12:04:47.710Z` à `12:04:50.741Z`).
 
 ### C. Inventaire des documents affectés
 - **Requête LogQL :**
@@ -158,7 +158,7 @@ Ce document consigne l'analyse médico-légale réalisée suite à la compromiss
 - **Payload d'audit :**
   ```json
   {
-    "timestamp": "2026-10-14T20:24:34.577969+00:00",
+    "timestamp": "2026-10-15T12:04:52.884734+00:00",
     "level": "INFO",
     "logger": "tenantguard.audit",
     "event": "RAG_QUERY",
