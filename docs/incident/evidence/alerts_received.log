@@ -1,0 +1,532 @@
+﻿[*] Starting TenantGuard Alert Receiver on port 8080...
+============================================================
+[ALERT WEBHOOK RECEIVED]
+Overall Status: firing | Total Alerts: 1
+  [1] Rule: ACCOUNT_TAKEOVER_SUSPECT | Severity: Critical | MITRE: T1110
+      Summary: Suspected account takeover for username alice
+      Labels: {'alertname': 'ACCOUNT_TAKEOVER_SUSPECT', 'grafana_folder': 'TenantGuard Security', 'mitre_technique': 'T1110', 'severity': 'Critical', 'username': 'alice'}
+------------------------------------------------------------
+Raw Payload:
+{
+  "receiver": "security-webhook",
+  "status": "firing",
+  "alerts": [
+    {
+      "status": "firing",
+      "labels": {
+        "alertname": "ACCOUNT_TAKEOVER_SUSPECT",
+        "grafana_folder": "TenantGuard Security",
+        "mitre_technique": "T1110",
+        "severity": "Critical",
+        "username": "alice"
+      },
+      "annotations": {
+        "description": "Username alice experienced >= 3 failed logins followed by a successful login within 10 minutes.",
+        "runbook_url": "docs/runbooks/ACCOUNT_TAKEOVER_SUSPECT.md",
+        "summary": "Suspected account takeover for username alice"
+      },
+      "startsAt": "2026-10-15T12:04:50Z",
+      "endsAt": "0001-01-01T00:00:00Z",
+      "generatorURL": "http://localhost:3000/alerting/grafana/tg-account-takeover-suspect/view?orgId=1",
+      "fingerprint": "6b6567a58d39a5cb",
+      "silenceURL": "http://localhost:3000/alerting/silence/new?alertmanager=grafana&matcher=alertname%3DACCOUNT_TAKEOVER_SUSPECT&matcher=grafana_folder%3DTenantGuard+Security&matcher=mitre_technique%3DT1110&matcher=severity%3DCritical&matcher=username%3Dalice&orgId=1",
+      "dashboardURL": "",
+      "panelURL": "",
+      "values": {
+        "B": 5,
+        "C": 1
+      },
+      "valueString": "[ var='B' labels={username=alice} value=5 ], [ var='C' labels={username=alice} value=1 ]"
+    }
+  ],
+  "groupLabels": {
+    "alertname": "ACCOUNT_TAKEOVER_SUSPECT",
+    "severity": "Critical"
+  },
+  "commonLabels": {
+    "alertname": "ACCOUNT_TAKEOVER_SUSPECT",
+    "grafana_folder": "TenantGuard Security",
+    "mitre_technique": "T1110",
+    "severity": "Critical",
+    "username": "alice"
+  },
+  "commonAnnotations": {
+    "description": "Username alice experienced >= 3 failed logins followed by a successful login within 10 minutes.",
+    "runbook_url": "docs/runbooks/ACCOUNT_TAKEOVER_SUSPECT.md",
+    "summary": "Suspected account takeover for username alice"
+  },
+  "externalURL": "http://localhost:3000/",
+  "version": "1",
+  "groupKey": "{}:{alertname=\"ACCOUNT_TAKEOVER_SUSPECT\", severity=\"Critical\"}",
+  "truncatedAlerts": 0,
+  "orgId": 1,
+  "title": "[FIRING:1] ACCOUNT_TAKEOVER_SUSPECT Critical (TenantGuard Security T1110 alice)",
+  "state": "alerting",
+  "message": "**Firing**\n\nValue: B=5, C=1\nLabels:\n - alertname = ACCOUNT_TAKEOVER_SUSPECT\n - grafana_folder = TenantGuard Security\n - mitre_technique = T1110\n - severity = Critical\n - username = alice\nAnnotations:\n - description = Username alice experienced >= 3 failed logins followed by a successful login within 10 minutes.\n - runbook_url = docs/runbooks/ACCOUNT_TAKEOVER_SUSPECT.md\n - summary = Suspected account takeover for username alice\nSource: http://localhost:3000/alerting/grafana/tg-account-takeover-suspect/view?orgId=1\nSilence: http://localhost:3000/alerting/silence/new?alertmanager=grafana&matcher=alertname%3DACCOUNT_TAKEOVER_SUSPECT&matcher=grafana_folder%3DTenantGuard+Security&matcher=mitre_technique%3DT1110&matcher=severity%3DCritical&matcher=username%3Dalice&orgId=1\n"
+}
+============================================================
+============================================================
+[ALERT WEBHOOK RECEIVED]
+Overall Status: firing | Total Alerts: 1
+  [1] Rule: CROSS_TENANT_ACCESS | Severity: Critical | MITRE: T1078 / T1190
+      Summary: Cross-tenant access violation (IDOR/BOLA) by user_id 1
+      Labels: {'alertname': 'CROSS_TENANT_ACCESS', 'grafana_folder': 'TenantGuard Security', 'mitre_technique': 'T1078 / T1190', 'severity': 'Critical', 'user_id': '1'}
+------------------------------------------------------------
+Raw Payload:
+{
+  "receiver": "security-webhook",
+  "status": "firing",
+  "alerts": [
+    {
+      "status": "firing",
+      "labels": {
+        "alertname": "CROSS_TENANT_ACCESS",
+        "grafana_folder": "TenantGuard Security",
+        "mitre_technique": "T1078 / T1190",
+        "severity": "Critical",
+        "user_id": "1"
+      },
+      "annotations": {
+        "description": "User 1 triggered 4 access denied events on other tenants' documents in 5 minutes (threshold >= 3).",
+        "runbook_url": "docs/runbooks/CROSS_TENANT_ACCESS.md",
+        "summary": "Cross-tenant access violation (IDOR/BOLA) by user_id 1"
+      },
+      "startsAt": "2026-10-15T12:04:50Z",
+      "endsAt": "0001-01-01T00:00:00Z",
+      "generatorURL": "http://localhost:3000/alerting/grafana/tg-cross-tenant-access/view?orgId=1",
+      "fingerprint": "add090ca0690c136",
+      "silenceURL": "http://localhost:3000/alerting/silence/new?alertmanager=grafana&matcher=alertname%3DCROSS_TENANT_ACCESS&matcher=grafana_folder%3DTenantGuard+Security&matcher=mitre_technique%3DT1078+%2F+T1190&matcher=severity%3DCritical&matcher=user_id%3D1&orgId=1",
+      "dashboardURL": "",
+      "panelURL": "",
+      "values": {
+        "B": 4,
+        "C": 1
+      },
+      "valueString": "[ var='B' labels={user_id=1} value=4 ], [ var='C' labels={user_id=1} value=1 ]"
+    }
+  ],
+  "groupLabels": {
+    "alertname": "CROSS_TENANT_ACCESS",
+    "severity": "Critical"
+  },
+  "commonLabels": {
+    "alertname": "CROSS_TENANT_ACCESS",
+    "grafana_folder": "TenantGuard Security",
+    "mitre_technique": "T1078 / T1190",
+    "severity": "Critical",
+    "user_id": "1"
+  },
+  "commonAnnotations": {
+    "description": "User 1 triggered 4 access denied events on other tenants' documents in 5 minutes (threshold >= 3).",
+    "runbook_url": "docs/runbooks/CROSS_TENANT_ACCESS.md",
+    "summary": "Cross-tenant access violation (IDOR/BOLA) by user_id 1"
+  },
+  "externalURL": "http://localhost:3000/",
+  "version": "1",
+  "groupKey": "{}:{alertname=\"CROSS_TENANT_ACCESS\", severity=\"Critical\"}",
+  "truncatedAlerts": 0,
+  "orgId": 1,
+  "title": "[FIRING:1] CROSS_TENANT_ACCESS Critical (TenantGuard Security T1078 / T1190 1)",
+  "state": "alerting",
+  "message": "**Firing**\n\nValue: B=4, C=1\nLabels:\n - alertname = CROSS_TENANT_ACCESS\n - grafana_folder = TenantGuard Security\n - mitre_technique = T1078 / T1190\n - severity = Critical\n - user_id = 1\nAnnotations:\n - description = User 1 triggered 4 access denied events on other tenants' documents in 5 minutes (threshold >= 3).\n - runbook_url = docs/runbooks/CROSS_TENANT_ACCESS.md\n - summary = Cross-tenant access violation (IDOR/BOLA) by user_id 1\nSource: http://localhost:3000/alerting/grafana/tg-cross-tenant-access/view?orgId=1\nSilence: http://localhost:3000/alerting/silence/new?alertmanager=grafana&matcher=alertname%3DCROSS_TENANT_ACCESS&matcher=grafana_folder%3DTenantGuard+Security&matcher=mitre_technique%3DT1078+%2F+T1190&matcher=severity%3DCritical&matcher=user_id%3D1&orgId=1\n"
+}
+============================================================
+============================================================
+[ALERT WEBHOOK RECEIVED]
+Overall Status: firing | Total Alerts: 1
+  [1] Rule: BRUTE_FORCE_LOGIN | Severity: High | MITRE: T1110
+      Summary: Brute force login attack detected from IP 172.24.0.1
+      Labels: {'alertname': 'BRUTE_FORCE_LOGIN', 'grafana_folder': 'TenantGuard Security', 'ip': '172.24.0.1', 'mitre_technique': 'T1110', 'severity': 'High'}
+------------------------------------------------------------
+Raw Payload:
+{
+  "receiver": "security-webhook",
+  "status": "firing",
+  "alerts": [
+    {
+      "status": "firing",
+      "labels": {
+        "alertname": "BRUTE_FORCE_LOGIN",
+        "grafana_folder": "TenantGuard Security",
+        "ip": "172.24.0.1",
+        "mitre_technique": "T1110",
+        "severity": "High"
+      },
+      "annotations": {
+        "description": "IP 172.24.0.1 reached 5 failed login attempts in 5 minutes (threshold >= 5).",
+        "runbook_url": "docs/runbooks/BRUTE_FORCE_LOGIN.md",
+        "summary": "Brute force login attack detected from IP 172.24.0.1"
+      },
+      "startsAt": "2026-10-15T12:04:50Z",
+      "endsAt": "0001-01-01T00:00:00Z",
+      "generatorURL": "http://localhost:3000/alerting/grafana/tg-brute-force-login/view?orgId=1",
+      "fingerprint": "45d370a421a23afa",
+      "silenceURL": "http://localhost:3000/alerting/silence/new?alertmanager=grafana&matcher=alertname%3DBRUTE_FORCE_LOGIN&matcher=grafana_folder%3DTenantGuard+Security&matcher=ip%3D172.24.0.1&matcher=mitre_technique%3DT1110&matcher=severity%3DHigh&orgId=1",
+      "dashboardURL": "",
+      "panelURL": "",
+      "values": {
+        "B": 5,
+        "C": 1
+      },
+      "valueString": "[ var='B' labels={ip=172.24.0.1} value=5 ], [ var='C' labels={ip=172.24.0.1} value=1 ]"
+    }
+  ],
+  "groupLabels": {
+    "alertname": "BRUTE_FORCE_LOGIN",
+    "severity": "High"
+  },
+  "commonLabels": {
+    "alertname": "BRUTE_FORCE_LOGIN",
+    "grafana_folder": "TenantGuard Security",
+    "ip": "172.24.0.1",
+    "mitre_technique": "T1110",
+    "severity": "High"
+  },
+  "commonAnnotations": {
+    "description": "IP 172.24.0.1 reached 5 failed login attempts in 5 minutes (threshold >= 5).",
+    "runbook_url": "docs/runbooks/BRUTE_FORCE_LOGIN.md",
+    "summary": "Brute force login attack detected from IP 172.24.0.1"
+  },
+  "externalURL": "http://localhost:3000/",
+  "version": "1",
+  "groupKey": "{}:{alertname=\"BRUTE_FORCE_LOGIN\", severity=\"High\"}",
+  "truncatedAlerts": 0,
+  "orgId": 1,
+  "title": "[FIRING:1] BRUTE_FORCE_LOGIN High (TenantGuard Security 172.24.0.1 T1110)",
+  "state": "alerting",
+  "message": "**Firing**\n\nValue: B=5, C=1\nLabels:\n - alertname = BRUTE_FORCE_LOGIN\n - grafana_folder = TenantGuard Security\n - ip = 172.24.0.1\n - mitre_technique = T1110\n - severity = High\nAnnotations:\n - description = IP 172.24.0.1 reached 5 failed login attempts in 5 minutes (threshold >= 5).\n - runbook_url = docs/runbooks/BRUTE_FORCE_LOGIN.md\n - summary = Brute force login attack detected from IP 172.24.0.1\nSource: http://localhost:3000/alerting/grafana/tg-brute-force-login/view?orgId=1\nSilence: http://localhost:3000/alerting/silence/new?alertmanager=grafana&matcher=alertname%3DBRUTE_FORCE_LOGIN&matcher=grafana_folder%3DTenantGuard+Security&matcher=ip%3D172.24.0.1&matcher=mitre_technique%3DT1110&matcher=severity%3DHigh&orgId=1\n"
+}
+============================================================
+============================================================
+[ALERT WEBHOOK RECEIVED]
+Overall Status: firing | Total Alerts: 1
+  [1] Rule: EXFILTRATION_VOLUME | Severity: Medium | MITRE: T1530
+      Summary: High volume of document downloads/views by user_id 1
+      Labels: {'alertname': 'EXFILTRATION_VOLUME', 'grafana_folder': 'TenantGuard Security', 'mitre_technique': 'T1530', 'severity': 'Medium', 'user_id': '1'}
+------------------------------------------------------------
+Raw Payload:
+{
+  "receiver": "security-webhook",
+  "status": "firing",
+  "alerts": [
+    {
+      "status": "firing",
+      "labels": {
+        "alertname": "EXFILTRATION_VOLUME",
+        "grafana_folder": "TenantGuard Security",
+        "mitre_technique": "T1530",
+        "severity": "Medium",
+        "user_id": "1"
+      },
+      "annotations": {
+        "description": "User 1 performed 22 document access operations in 5 minutes (threshold >= 20).",
+        "runbook_url": "docs/runbooks/EXFILTRATION_VOLUME.md",
+        "summary": "High volume of document downloads/views by user_id 1"
+      },
+      "startsAt": "2026-10-15T12:05:50Z",
+      "endsAt": "0001-01-01T00:00:00Z",
+      "generatorURL": "http://localhost:3000/alerting/grafana/tg-exfiltration-volume/view?orgId=1",
+      "fingerprint": "a9446283866b9b41",
+      "silenceURL": "http://localhost:3000/alerting/silence/new?alertmanager=grafana&matcher=alertname%3DEXFILTRATION_VOLUME&matcher=grafana_folder%3DTenantGuard+Security&matcher=mitre_technique%3DT1530&matcher=severity%3DMedium&matcher=user_id%3D1&orgId=1",
+      "dashboardURL": "",
+      "panelURL": "",
+      "values": {
+        "B": 22,
+        "C": 1
+      },
+      "valueString": "[ var='B' labels={user_id=1} value=22 ], [ var='C' labels={user_id=1} value=1 ]"
+    }
+  ],
+  "groupLabels": {
+    "alertname": "EXFILTRATION_VOLUME",
+    "severity": "Medium"
+  },
+  "commonLabels": {
+    "alertname": "EXFILTRATION_VOLUME",
+    "grafana_folder": "TenantGuard Security",
+    "mitre_technique": "T1530",
+    "severity": "Medium",
+    "user_id": "1"
+  },
+  "commonAnnotations": {
+    "description": "User 1 performed 22 document access operations in 5 minutes (threshold >= 20).",
+    "runbook_url": "docs/runbooks/EXFILTRATION_VOLUME.md",
+    "summary": "High volume of document downloads/views by user_id 1"
+  },
+  "externalURL": "http://localhost:3000/",
+  "version": "1",
+  "groupKey": "{}:{alertname=\"EXFILTRATION_VOLUME\", severity=\"Medium\"}",
+  "truncatedAlerts": 0,
+  "orgId": 1,
+  "title": "[FIRING:1] EXFILTRATION_VOLUME Medium (TenantGuard Security T1530 1)",
+  "state": "alerting",
+  "message": "**Firing**\n\nValue: B=22, C=1\nLabels:\n - alertname = EXFILTRATION_VOLUME\n - grafana_folder = TenantGuard Security\n - mitre_technique = T1530\n - severity = Medium\n - user_id = 1\nAnnotations:\n - description = User 1 performed 22 document access operations in 5 minutes (threshold >= 20).\n - runbook_url = docs/runbooks/EXFILTRATION_VOLUME.md\n - summary = High volume of document downloads/views by user_id 1\nSource: http://localhost:3000/alerting/grafana/tg-exfiltration-volume/view?orgId=1\nSilence: http://localhost:3000/alerting/silence/new?alertmanager=grafana&matcher=alertname%3DEXFILTRATION_VOLUME&matcher=grafana_folder%3DTenantGuard+Security&matcher=mitre_technique%3DT1530&matcher=severity%3DMedium&matcher=user_id%3D1&orgId=1\n"
+}
+============================================================
+============================================================
+[ALERT WEBHOOK RECEIVED]
+Overall Status: resolved | Total Alerts: 1
+  [1] Rule: EXFILTRATION_VOLUME | Severity: Medium | MITRE: T1530
+      Summary: High volume of document downloads/views by user_id 1
+      Labels: {'alertname': 'EXFILTRATION_VOLUME', 'grafana_folder': 'TenantGuard Security', 'mitre_technique': 'T1530', 'severity': 'Medium', 'user_id': '1'}
+------------------------------------------------------------
+Raw Payload:
+{
+  "receiver": "security-webhook",
+  "status": "resolved",
+  "alerts": [
+    {
+      "status": "resolved",
+      "labels": {
+        "alertname": "EXFILTRATION_VOLUME",
+        "grafana_folder": "TenantGuard Security",
+        "mitre_technique": "T1530",
+        "severity": "Medium",
+        "user_id": "1"
+      },
+      "annotations": {
+        "description": "User 1 performed 6 document access operations in 5 minutes (threshold >= 20).",
+        "runbook_url": "docs/runbooks/EXFILTRATION_VOLUME.md",
+        "summary": "High volume of document downloads/views by user_id 1"
+      },
+      "startsAt": "2026-10-15T12:05:50Z",
+      "endsAt": "2026-10-15T12:09:50Z",
+      "generatorURL": "http://localhost:3000/alerting/grafana/tg-exfiltration-volume/view?orgId=1",
+      "fingerprint": "a9446283866b9b41",
+      "silenceURL": "http://localhost:3000/alerting/silence/new?alertmanager=grafana&matcher=alertname%3DEXFILTRATION_VOLUME&matcher=grafana_folder%3DTenantGuard+Security&matcher=mitre_technique%3DT1530&matcher=severity%3DMedium&matcher=user_id%3D1&orgId=1",
+      "dashboardURL": "",
+      "panelURL": "",
+      "values": {
+        "B": 6,
+        "C": 0
+      },
+      "valueString": "[ var='B' labels={user_id=1} value=6 ], [ var='C' labels={user_id=1} value=0 ]"
+    }
+  ],
+  "groupLabels": {
+    "alertname": "EXFILTRATION_VOLUME",
+    "severity": "Medium"
+  },
+  "commonLabels": {
+    "alertname": "EXFILTRATION_VOLUME",
+    "grafana_folder": "TenantGuard Security",
+    "mitre_technique": "T1530",
+    "severity": "Medium",
+    "user_id": "1"
+  },
+  "commonAnnotations": {
+    "description": "User 1 performed 6 document access operations in 5 minutes (threshold >= 20).",
+    "runbook_url": "docs/runbooks/EXFILTRATION_VOLUME.md",
+    "summary": "High volume of document downloads/views by user_id 1"
+  },
+  "externalURL": "http://localhost:3000/",
+  "version": "1",
+  "groupKey": "{}:{alertname=\"EXFILTRATION_VOLUME\", severity=\"Medium\"}",
+  "truncatedAlerts": 0,
+  "orgId": 1,
+  "title": "[RESOLVED] EXFILTRATION_VOLUME Medium (TenantGuard Security T1530 1)",
+  "state": "ok",
+  "message": "**Resolved**\n\nValue: B=6, C=0\nLabels:\n - alertname = EXFILTRATION_VOLUME\n - grafana_folder = TenantGuard Security\n - mitre_technique = T1530\n - severity = Medium\n - user_id = 1\nAnnotations:\n - description = User 1 performed 6 document access operations in 5 minutes (threshold >= 20).\n - runbook_url = docs/runbooks/EXFILTRATION_VOLUME.md\n - summary = High volume of document downloads/views by user_id 1\nSource: http://localhost:3000/alerting/grafana/tg-exfiltration-volume/view?orgId=1\nSilence: http://localhost:3000/alerting/silence/new?alertmanager=grafana&matcher=alertname%3DEXFILTRATION_VOLUME&matcher=grafana_folder%3DTenantGuard+Security&matcher=mitre_technique%3DT1530&matcher=severity%3DMedium&matcher=user_id%3D1&orgId=1\n"
+}
+============================================================
+============================================================
+[ALERT WEBHOOK RECEIVED]
+Overall Status: resolved | Total Alerts: 1
+  [1] Rule: BRUTE_FORCE_LOGIN | Severity: High | MITRE: T1110
+      Summary: Brute force login attack detected from IP 172.24.0.1
+      Labels: {'alertname': 'BRUTE_FORCE_LOGIN', 'grafana_folder': 'TenantGuard Security', 'ip': '172.24.0.1', 'mitre_technique': 'T1110', 'severity': 'High'}
+------------------------------------------------------------
+Raw Payload:
+{
+  "receiver": "security-webhook",
+  "status": "resolved",
+  "alerts": [
+    {
+      "status": "resolved",
+      "labels": {
+        "alertname": "BRUTE_FORCE_LOGIN",
+        "grafana_folder": "TenantGuard Security",
+        "ip": "172.24.0.1",
+        "mitre_technique": "T1110",
+        "severity": "High"
+      },
+      "annotations": {
+        "description": "IP 172.24.0.1 reached 1 failed login attempts in 5 minutes (threshold >= 5).",
+        "runbook_url": "docs/runbooks/BRUTE_FORCE_LOGIN.md",
+        "summary": "Brute force login attack detected from IP 172.24.0.1"
+      },
+      "startsAt": "2026-10-15T12:04:50Z",
+      "endsAt": "2026-10-15T12:09:50Z",
+      "generatorURL": "http://localhost:3000/alerting/grafana/tg-brute-force-login/view?orgId=1",
+      "fingerprint": "45d370a421a23afa",
+      "silenceURL": "http://localhost:3000/alerting/silence/new?alertmanager=grafana&matcher=alertname%3DBRUTE_FORCE_LOGIN&matcher=grafana_folder%3DTenantGuard+Security&matcher=ip%3D172.24.0.1&matcher=mitre_technique%3DT1110&matcher=severity%3DHigh&orgId=1",
+      "dashboardURL": "",
+      "panelURL": "",
+      "values": {
+        "B": 1,
+        "C": 0
+      },
+      "valueString": "[ var='B' labels={ip=172.24.0.1} value=1 ], [ var='C' labels={ip=172.24.0.1} value=0 ]"
+    }
+  ],
+  "groupLabels": {
+    "alertname": "BRUTE_FORCE_LOGIN",
+    "severity": "High"
+  },
+  "commonLabels": {
+    "alertname": "BRUTE_FORCE_LOGIN",
+    "grafana_folder": "TenantGuard Security",
+    "ip": "172.24.0.1",
+    "mitre_technique": "T1110",
+    "severity": "High"
+  },
+  "commonAnnotations": {
+    "description": "IP 172.24.0.1 reached 1 failed login attempts in 5 minutes (threshold >= 5).",
+    "runbook_url": "docs/runbooks/BRUTE_FORCE_LOGIN.md",
+    "summary": "Brute force login attack detected from IP 172.24.0.1"
+  },
+  "externalURL": "http://localhost:3000/",
+  "version": "1",
+  "groupKey": "{}:{alertname=\"BRUTE_FORCE_LOGIN\", severity=\"High\"}",
+  "truncatedAlerts": 0,
+  "orgId": 1,
+  "title": "[RESOLVED] BRUTE_FORCE_LOGIN High (TenantGuard Security 172.24.0.1 T1110)",
+  "state": "ok",
+  "message": "**Resolved**\n\nValue: B=1, C=0\nLabels:\n - alertname = BRUTE_FORCE_LOGIN\n - grafana_folder = TenantGuard Security\n - ip = 172.24.0.1\n - mitre_technique = T1110\n - severity = High\nAnnotations:\n - description = IP 172.24.0.1 reached 1 failed login attempts in 5 minutes (threshold >= 5).\n - runbook_url = docs/runbooks/BRUTE_FORCE_LOGIN.md\n - summary = Brute force login attack detected from IP 172.24.0.1\nSource: http://localhost:3000/alerting/grafana/tg-brute-force-login/view?orgId=1\nSilence: http://localhost:3000/alerting/silence/new?alertmanager=grafana&matcher=alertname%3DBRUTE_FORCE_LOGIN&matcher=grafana_folder%3DTenantGuard+Security&matcher=ip%3D172.24.0.1&matcher=mitre_technique%3DT1110&matcher=severity%3DHigh&orgId=1\n"
+}
+============================================================
+============================================================
+[ALERT WEBHOOK RECEIVED]
+Overall Status: resolved | Total Alerts: 1
+  [1] Rule: CROSS_TENANT_ACCESS | Severity: Critical | MITRE: T1078 / T1190
+      Summary: Cross-tenant access violation (IDOR/BOLA) by user_id 1
+      Labels: {'alertname': 'CROSS_TENANT_ACCESS', 'grafana_folder': 'TenantGuard Security', 'mitre_technique': 'T1078 / T1190', 'severity': 'Critical', 'user_id': '1'}
+------------------------------------------------------------
+Raw Payload:
+{
+  "receiver": "security-webhook",
+  "status": "resolved",
+  "alerts": [
+    {
+      "status": "resolved",
+      "labels": {
+        "alertname": "CROSS_TENANT_ACCESS",
+        "grafana_folder": "TenantGuard Security",
+        "mitre_technique": "T1078 / T1190",
+        "severity": "Critical",
+        "user_id": "1"
+      },
+      "annotations": {
+        "description": "User 1 triggered 1 access denied events on other tenants' documents in 5 minutes (threshold >= 3).",
+        "runbook_url": "docs/runbooks/CROSS_TENANT_ACCESS.md",
+        "summary": "Cross-tenant access violation (IDOR/BOLA) by user_id 1"
+      },
+      "startsAt": "2026-10-15T12:04:50Z",
+      "endsAt": "2026-10-15T12:09:50Z",
+      "generatorURL": "http://localhost:3000/alerting/grafana/tg-cross-tenant-access/view?orgId=1",
+      "fingerprint": "add090ca0690c136",
+      "silenceURL": "http://localhost:3000/alerting/silence/new?alertmanager=grafana&matcher=alertname%3DCROSS_TENANT_ACCESS&matcher=grafana_folder%3DTenantGuard+Security&matcher=mitre_technique%3DT1078+%2F+T1190&matcher=severity%3DCritical&matcher=user_id%3D1&orgId=1",
+      "dashboardURL": "",
+      "panelURL": "",
+      "values": {
+        "B": 1,
+        "C": 0
+      },
+      "valueString": "[ var='B' labels={user_id=1} value=1 ], [ var='C' labels={user_id=1} value=0 ]"
+    }
+  ],
+  "groupLabels": {
+    "alertname": "CROSS_TENANT_ACCESS",
+    "severity": "Critical"
+  },
+  "commonLabels": {
+    "alertname": "CROSS_TENANT_ACCESS",
+    "grafana_folder": "TenantGuard Security",
+    "mitre_technique": "T1078 / T1190",
+    "severity": "Critical",
+    "user_id": "1"
+  },
+  "commonAnnotations": {
+    "description": "User 1 triggered 1 access denied events on other tenants' documents in 5 minutes (threshold >= 3).",
+    "runbook_url": "docs/runbooks/CROSS_TENANT_ACCESS.md",
+    "summary": "Cross-tenant access violation (IDOR/BOLA) by user_id 1"
+  },
+  "externalURL": "http://localhost:3000/",
+  "version": "1",
+  "groupKey": "{}:{alertname=\"CROSS_TENANT_ACCESS\", severity=\"Critical\"}",
+  "truncatedAlerts": 0,
+  "orgId": 1,
+  "title": "[RESOLVED] CROSS_TENANT_ACCESS Critical (TenantGuard Security T1078 / T1190 1)",
+  "state": "ok",
+  "message": "**Resolved**\n\nValue: B=1, C=0\nLabels:\n - alertname = CROSS_TENANT_ACCESS\n - grafana_folder = TenantGuard Security\n - mitre_technique = T1078 / T1190\n - severity = Critical\n - user_id = 1\nAnnotations:\n - description = User 1 triggered 1 access denied events on other tenants' documents in 5 minutes (threshold >= 3).\n - runbook_url = docs/runbooks/CROSS_TENANT_ACCESS.md\n - summary = Cross-tenant access violation (IDOR/BOLA) by user_id 1\nSource: http://localhost:3000/alerting/grafana/tg-cross-tenant-access/view?orgId=1\nSilence: http://localhost:3000/alerting/silence/new?alertmanager=grafana&matcher=alertname%3DCROSS_TENANT_ACCESS&matcher=grafana_folder%3DTenantGuard+Security&matcher=mitre_technique%3DT1078+%2F+T1190&matcher=severity%3DCritical&matcher=user_id%3D1&orgId=1\n"
+}
+============================================================
+============================================================
+[ALERT WEBHOOK RECEIVED]
+Overall Status: resolved | Total Alerts: 1
+  [1] Rule: ACCOUNT_TAKEOVER_SUSPECT | Severity: Critical | MITRE: T1110
+      Summary: Suspected account takeover for username alice
+      Labels: {'alertname': 'ACCOUNT_TAKEOVER_SUSPECT', 'grafana_folder': 'TenantGuard Security', 'mitre_technique': 'T1110', 'severity': 'Critical', 'username': 'alice'}
+------------------------------------------------------------
+Raw Payload:
+{
+  "receiver": "security-webhook",
+  "status": "resolved",
+  "alerts": [
+    {
+      "status": "resolved",
+      "labels": {
+        "alertname": "ACCOUNT_TAKEOVER_SUSPECT",
+        "grafana_folder": "TenantGuard Security",
+        "mitre_technique": "T1110",
+        "severity": "Critical",
+        "username": "alice"
+      },
+      "annotations": {
+        "description": "Username alice experienced >= 3 failed logins followed by a successful login within 10 minutes.",
+        "grafana_state_reason": "NoData",
+        "runbook_url": "docs/runbooks/ACCOUNT_TAKEOVER_SUSPECT.md",
+        "summary": "Suspected account takeover for username alice"
+      },
+      "startsAt": "2026-10-15T12:04:50Z",
+      "endsAt": "2026-10-15T12:24:50Z",
+      "generatorURL": "http://localhost:3000/alerting/grafana/tg-account-takeover-suspect/view?orgId=1",
+      "fingerprint": "6b6567a58d39a5cb",
+      "silenceURL": "http://localhost:3000/alerting/silence/new?alertmanager=grafana&matcher=alertname%3DACCOUNT_TAKEOVER_SUSPECT&matcher=grafana_folder%3DTenantGuard+Security&matcher=mitre_technique%3DT1110&matcher=severity%3DCritical&matcher=username%3Dalice&orgId=1",
+      "dashboardURL": "",
+      "panelURL": "",
+      "values": {
+        "B": 4,
+        "C": 1
+      },
+      "valueString": ""
+    }
+  ],
+  "groupLabels": {
+    "alertname": "ACCOUNT_TAKEOVER_SUSPECT",
+    "severity": "Critical"
+  },
+  "commonLabels": {
+    "alertname": "ACCOUNT_TAKEOVER_SUSPECT",
+    "grafana_folder": "TenantGuard Security",
+    "mitre_technique": "T1110",
+    "severity": "Critical",
+    "username": "alice"
+  },
+  "commonAnnotations": {
+    "description": "Username alice experienced >= 3 failed logins followed by a successful login within 10 minutes.",
+    "grafana_state_reason": "NoData",
+    "runbook_url": "docs/runbooks/ACCOUNT_TAKEOVER_SUSPECT.md",
+    "summary": "Suspected account takeover for username alice"
+  },
+  "externalURL": "http://localhost:3000/",
+  "version": "1",
+  "groupKey": "{}:{alertname=\"ACCOUNT_TAKEOVER_SUSPECT\", severity=\"Critical\"}",
+  "truncatedAlerts": 0,
+  "orgId": 1,
+  "title": "[RESOLVED] ACCOUNT_TAKEOVER_SUSPECT Critical (TenantGuard Security T1110 alice)",
+  "state": "ok",
+  "message": "**Resolved**\n\nValue: B=4, C=1\nLabels:\n - alertname = ACCOUNT_TAKEOVER_SUSPECT\n - grafana_folder = TenantGuard Security\n - mitre_technique = T1110\n - severity = Critical\n - username = alice\nAnnotations:\n - description = Username alice experienced >= 3 failed logins followed by a successful login within 10 minutes.\n - grafana_state_reason = NoData\n - runbook_url = docs/runbooks/ACCOUNT_TAKEOVER_SUSPECT.md\n - summary = Suspected account takeover for username alice\nSource: http://localhost:3000/alerting/grafana/tg-account-takeover-suspect/view?orgId=1\nSilence: http://localhost:3000/alerting/silence/new?alertmanager=grafana&matcher=alertname%3DACCOUNT_TAKEOVER_SUSPECT&matcher=grafana_folder%3DTenantGuard+Security&matcher=mitre_technique%3DT1110&matcher=severity%3DCritical&matcher=username%3Dalice&orgId=1\n"
+}
+============================================================
+[*] Starting TenantGuard Alert Receiver on port 8080...

@@ -1,6 +1,6 @@
 # Post-Mortem de Sécurité : Incident "Opération BlackShard"
 
-**Date de l'incident :** 14 octobre 2026  
+**Date de l'incident :** 15 octobre 2026  
 **Statut :** Résolu / Post-Mortem Blameless  
 **Auteurs :** Équipe de Réponse à Incident (CSIRT / SOC TenantGuard)  
 **Classification :** P1 — Incident Majeur de Sécurité  
@@ -8,10 +8,10 @@
 ---
 
 ## 1. Résumé Exécutif
-Le 14 octobre 2026 à 20:23 UTC, une attaque ciblée en provenance de l'adresse IP `172.24.0.1` a compromis le compte administrateur `alice` appartenant au tenant Acme Corp (Tenant 1) via une attaque par force brute / dictionnaire sur l'endpoint `/auth/login`.  
+Le 15 octobre 2026 à 12:03 UTC, une attaque ciblée en provenance de l'adresse IP `172.24.0.1` a compromis le compte administrateur `alice` appartenant au tenant Acme Corp (Tenant 1) via une attaque par force brute / dictionnaire sur l'endpoint `/auth/login`.  
 L'attaquant a ensuite tenté d'accéder aux documents confidentiels d'organisations tierces (CyberDyne Systems), tentatives immédiatement bloquées par l'isolation multi-tenant v1. L'attaquant a ensuite procédé à l'exfiltration massive de 22 lectures/téléchargements du document interne d'Acme Corp (`acme_strategic_acquisition_2026.txt`) et exécuté une requête d'extraction sémantique via le moteur RAG.
 
-L'ensemble des activités hostiles auditées a été détecté en temps réel par les règles Grafana Unified Alerting avec un délai de détection moyen de **38 secondes**. Les mesures de confinement immédiates testées et validées (verrouillage du compte en base et rotation de la clé maîtresse JWT avec recréation du conteneur API) ont permis de neutraliser l'adversaire et de révoquer l'ensemble des sessions actives (preuves brutes consignées dans `docs/incident/CONTAINMENT_EVIDENCE.md`).
+L'ensemble des activités hostiles auditées a été détecté en temps réel par les règles Grafana Unified Alerting avec un délai de détection moyen de **46,5 secondes**. Toutes les alertes émises par Grafana ont été capturées fidèlement par le webhook récepteur (`docs/incident/evidence/alerts_received.log`). Les mesures de confinement immédiates testées et validées (verrouillage du compte en base et rotation de la clé maîtresse JWT avec recréation du conteneur API) ont permis de neutraliser l'adversaire et de révoquer l'ensemble des sessions actives (preuves brutes consignées dans `docs/incident/CONTAINMENT_EVIDENCE.md`).
 
 ---
 
@@ -30,14 +30,14 @@ L'ensemble des activités hostiles auditées a été détecté en temps réel pa
 | **12:03:59Z** | `AUTH_LOGIN_FAILED` (x5) | **Accès Initial (T1110)** | *(Source : logs d'audit)* 5 tentatives successives de mot de passe invalide sur `alice`. |
 | **12:04:02Z** | `AUTH_LOGIN_SUCCESS` | **Accès Initial (T1078)** | *(Source : logs d'audit)* Connexion réussie pour `alice` (user_id=1, tenant_id=1). Émission du JWT. |
 | **12:04:26Z** | `DOCUMENT_ACCESS_DENIED` (x4) | **Mouvement Latéral (T1078/T1190)** | *(Source : logs d'audit)* 4 tentatives d'accès au document étranger id=3 (CyberDyne) bloquées (HTTP 404). |
-| **12:04:50Z** | **Alerte `BRUTE_FORCE_LOGIN`** | Détection SOC | Déclenchement de l'alerte High (`startsAt: 2026-10-15T12:04:50Z`). |
-| **12:04:50Z** | **Alerte `ACCOUNT_TAKEOVER_SUSPECT`** | Détection SOC | Déclenchement de l'alerte Critical (`startsAt: 2026-10-15T12:04:50Z`). |
-| **12:04:50Z** | **Alerte `CROSS_TENANT_ACCESS`** | Détection SOC | Déclenchement de l'alerte Critical (`startsAt: 2026-10-15T12:04:50Z`). |
 | **12:04:47Z** | `DOCUMENT_LIST` | **Découverte (T1083)** | *(Source : logs d'audit)* Énumération des documents du tenant Acme Corp. |
 | **12:04:47Z** | `DOCUMENT_VIEW` (doc id=2) | **Collecte & Exfiltration (T1530)** | **Premier log d'exfiltration réel** (`12:04:47.710Z`, prouvé par requête LogQL). |
 | **12:04:47Z** à **12:04:50Z** | `DOCUMENT_VIEW` & `DOWNLOAD` (x22) | **Collecte & Exfiltration (T1530)** | *(Source : logs d'audit)* 22 accès documentaires en rafale sur le document id=2 d'Acme Corp. |
+| **12:04:50Z** | **Alerte `BRUTE_FORCE_LOGIN`** | Détection SOC | Déclenchement de l'alerte High (`startsAt: 2026-10-15T12:04:50Z`, cf. `alerts_received.log`). |
+| **12:04:50Z** | **Alerte `ACCOUNT_TAKEOVER_SUSPECT`** | Détection SOC | Déclenchement de l'alerte Critical (`startsAt: 2026-10-15T12:04:50Z`, cf. `alerts_received.log`). |
+| **12:04:50Z** | **Alerte `CROSS_TENANT_ACCESS`** | Détection SOC | Déclenchement de l'alerte Critical (`startsAt: 2026-10-15T12:04:50Z`, cf. `alerts_received.log`). |
 | **12:04:52Z** | `RAG_QUERY` | **Exfiltration (T1119)** | *(Source : logs d'audit)* Extraction sémantique via le LLM (`12:04:52.884Z`). |
-| **12:05:50Z** | **Alerte `EXFILTRATION_VOLUME`** | Détection SOC | Déclenchement de l'alerte Medium (`startsAt: 2026-10-15T12:05:50Z`). |
+| **12:05:50Z** | **Alerte `EXFILTRATION_VOLUME`** | Détection SOC | Déclenchement de l'alerte Medium (`startsAt: 2026-10-15T12:05:50Z`, cf. `alerts_received.log`). |
 | **Confinement** | Verrouillage compte PostgreSQL | **Confinement (Containment)** | *(Testée — reproduit dans `CONTAINMENT_EVIDENCE.md`)* `UPDATE users SET hashed_password = 'DISABLED_'...`. Login ultérieur rejeté avec 401 Unauthorized (`AUTH_LOGIN_FAILED`). |
 | **Confinement** | Rotation `JWT_SECRET` + recreate API | **Confinement (Containment)** | *(Testée — reproduit dans `CONTAINMENT_EVIDENCE.md`)* `sed -i ... .env` et `docker compose up -d api`. Requête avec jeton émis avant rotation rejetée avec 401 ("invalid token signature"). |
 

@@ -1,6 +1,6 @@
 # Rapport d'Investigation Médico-Légale : Incident "Opération BlackShard"
 
-Ce document consigne l'analyse médico-légale réalisée suite à la compromission simulée du tenant Acme Corp sur la plateforme TenantGuard. L'ensemble des requêtes présentées ont été exécutées directement contre l'API Loki (`http://127.0.0.1:3100/loki/api/v1/query` et `query_range`), et leurs résultats bruts sont retranscrits fidèlement ci-dessous.
+Ce document consigne l'analyse médico-légale réalisée suite à la compromission simulée du tenant Acme Corp sur la plateforme TenantGuard. L'ensemble des requêtes présentées ont été exécutées directement contre l'API Loki (`http://127.0.0.1:3100/loki/api/v1/query_range`), et leurs résultats bruts sont retranscrits fidèlement ci-dessous. L'intégralité des réponses JSON brutes est archivée sous `docs/incident/evidence/loki_*.json`, et la capture intégrale des webhooks d'alerte reçus par le récepteur est consignée dans `docs/incident/evidence/alerts_received.log`.
 
 ---
 
