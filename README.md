@@ -1,231 +1,176 @@
-# TenantGuard 🛡️ — Application SaaS Multi-Tenant Volontairement Vulnérable (v0)
+# TenantGuard 🛡️ — Architecture SaaS Multi-Tenant RAG Sécurisée avec Observabilité et Détection des Menaces (v1.0)
 
-[![Phase](https://img.io/badge/phase-v0_vulnerable-critical.svg)](#)
+[![CI/CD Pipeline](https://github.com/h-4mza/TenantGuard/actions/workflows/devsecops.yml/badge.svg)](https://github.com/h-4mza/TenantGuard/actions/workflows/devsecops.yml)
+[![Version](https://img.shields.io/badge/version-1.0.0-blue.svg)](https://github.com/h-4mza/TenantGuard/releases)
 [![Python](https://img.shields.io/badge/python-3.11-blue.svg)](https://www.python.org/)
 [![FastAPI](https://img.shields.io/badge/framework-FastAPI-009688.svg)](https://fastapi.tiangolo.com/)
 [![ChromaDB](https://img.shields.io/badge/vector_db-ChromaDB-orange.svg)](https://www.trychroma.com/)
 [![PostgreSQL](https://img.shields.io/badge/db-PostgreSQL_15-336791.svg)](https://www.postgresql.org/)
+[![Grafana](https://img.shields.io/badge/observability-Grafana_11-F46800.svg)](https://grafana.com/)
+[![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
-> ⚠️ **AVERTISSEMENT DE SÉCURITÉ IMPORTANT**  
-> Ce projet est un **projet pédagogique de cybersécurité** (portfolio pour candidature en stage de fin d'études).  
-> **Cette version v0 est VOLONTAIREMENT VULNÉRABLE.**  
-> Elle contient des failles de sécurité critiques conçues pour être exploitées, corrigées, puis monitorées dans le cadre de simulations d'incident.  
-> **NE JAMAIS DÉPLOYER CETTE APPLICATION DANS UN ENVIRONNEMENT DE PRODUCTION.**  
-> Consultez le fichier [KNOWN_ISSUES_V0.md](file:///C:/Users/HP/Desktop/TenantGuard/KNOWN_ISSUES_V0.md) pour la liste exhaustive des vulnérabilités volontairement introduites.
-
----
-
-## 🎯 Contexte & Objectifs du Projet
-
-**TenantGuard** illustre le cycle de vie complet de sécurisation d'une application SaaS moderne intégrant du RAG (Retrieval-Augmented Generation) :
-1. **Phase 1 (Actuelle - v0)** : Construction de l'architecture multi-tenant avec failles délibérées documentées.
-2. **Phase 2 (À venir)** : Pentest offensif (Burp Suite, `jwt_tool`, ffuf), rédaction du rapport d'audit et remédiation manuelle du code vers une version `v1` durcie.
-3. **Phase 3 (À venir)** : Stack d'observabilité et de détection (Promtail, Loki, Grafana), mise en place de règles SIEM/alertes et simulation d'incident avec runbook.
+> [!NOTE]
+> **Cas d'étude technique & Portfolio :**  
+> **TenantGuard** illustre le cycle de vie complet de sécurisation d'une application SaaS multi-tenant intégrant un pipeline RAG (*Retrieval-Augmented Generation*).  
+> À partir d'une version initiale délibérément vulnérable (v0), la plateforme a fait l'objet d'un audit offensif documenté ([`pentest/report.md`](pentest/report.md)), d'une remédiation intégrale de son code applicatif (v1.0), de la mise en place d'un pipeline DevSecOps à gates bloquantes, d'une stack d'observabilité et d'audit structuré (Loki/Promtail), de 7 règles de détection provisionnées en code (Grafana Unified Alerting mappées à MITRE ATT&CK), et d'une simulation d'incident avec calcul du MTTD (46,5 secondes) et post-mortem blameless.  
+> 
+> Pour une synthèse complète conçue pour recruteurs et évaluateurs, consultez l'**[Étude de Cas Technique (PORTFOLIO.md)](docs/PORTFOLIO.md)**.
 
 ---
 
-## 🏗️ Architecture & Stack Technique
+## 🏗️ Architecture Globale du Système
 
-- **API Backend** : [FastAPI](https://fastapi.tiangolo.com/) (Python 3.11)
-- **Base Relationnelle** : [PostgreSQL 15](https://www.postgresql.org/) via SQLAlchemy ORM
-- **Base Vectorielle** : [ChromaDB](https://www.trychroma.com/) (stockage persistent des embeddings de documents)
-- **Modèle LLM** : [Google Gemini](https://ai.google.dev/) (avec stub/mock intégré fonctionnant hors-ligne sans clé requise)
-- **Conteneurisation** : [Docker](https://www.docker.com/) & [Docker Compose](https://docs.docker.com/compose/)
+```mermaid
+graph TD
+    Client["Client HTTP / Évaluateur / Attaquant"] -->|Port 8000| API["FastAPI Backend (Python 3.11, Non-Root UID 10001)"]
+    
+    subgraph Data_Storage ["Stockage & Données"]
+        API -->|Port 5432| DB[("PostgreSQL 15 (Données relationnelles & Comptes)")]
+        API -->|FS persistant| Chroma[("ChromaDB (Index vectoriel partitionné par tenant)")]
+        API -->|LLM API / Mock| Gemini["Google Gemini (ou Mock LLM intégré)"]
+    end
+    
+    subgraph Observability_SIEM ["Observabilité & Détection des Menaces"]
+        API -->|Audit JSON stdout| Promtail["Promtail 3.0.0 (Scrape logs conteneurs)"]
+        Promtail -->|Port 3100| Loki["Grafana Loki 3.0.0 (Indexation LogQL)"]
+        Loki -->|LogQL| Grafana["Grafana 11.0.0 (Unified Alerting & Dashboards)"]
+        Grafana -->|Webhook HTTP POST| Receiver["Alert Receiver (Port 8088 stdout)"]
+    end
+    
+    subgraph CI_Pipeline ["Pipeline DevSecOps (GitHub Actions - Ubuntu 24.04)"]
+        direction LR
+        S1["SAST (Semgrep)"]
+        S2["SCA (pip-audit)"]
+        S3["Secrets (Gitleaks)"]
+        S4["Trivy (Container Scan)"]
+        S5["DAST (OWASP ZAP)"]
+        S6["SBOM (Syft SPDX)"]
+    end
+```
 
 ---
 
 ## 🚀 Démarrage Rapide
 
-Le projet démarre avec une seule commande standard :
+### 1. Prérequis
+- [Docker Engine](https://docs.docker.com/engine/) (version 24+) et [Docker Compose](https://docs.docker.com/compose/) (version v2+).
+- `curl` et `bash` (pour l'exécution des scripts de démonstration et de vérification).
 
-```bash
-docker compose up --build
-```
-
-Pour démarrer l'application avec la **stack d'observabilité complète** (Loki, Promtail, Grafana) :
-
-```bash
-docker compose -f docker-compose.yml -f docker-compose.observability.yml up -d --build
-```
-Consultez le guide [OBSERVABILITY.md](file:///C:/Users/HP/Desktop/TenantGuard/OBSERVABILITY.md) pour les détails d'accès et requêtes LogQL.
-
-L'API FastAPI est immédiatement disponible sur :
-- **Documentation Swagger interactive** : [http://localhost:8000/docs](http://localhost:8000/docs)
-- **Documentation ReDoc** : [http://localhost:8000/redoc](http://localhost:8000/redoc)
-- **Vérification de santé (Healthcheck)** : [http://localhost:8000/health](http://localhost:8000/health)
-- **Grafana (Observabilité & Audit)** : [http://127.0.0.1:3000](http://127.0.0.1:3000) (identifiants configurés via `GRAFANA_ADMIN_USER` / `GRAFANA_ADMIN_PASSWORD` dans `.env`, lié exclusivement à `127.0.0.1`)
-
----
-
-## 🔑 Données Initiales et Comptes de Démonstration (Seed)
-
-Au premier lancement, la base PostgreSQL et ChromaDB sont automatiquement initialisées avec **3 tenants** et **3 utilisateurs pré-configurés** :
-
-| Tenant ID | Organisation | Identifiant (Username) | Mot de passe | Rôle | Document d'exemple indexé |
-|---|---|---|---|---|---|
-| **1** | Acme Corp | `alice` | `alice123` | `admin` | `acme_strategic_acquisition_2026.txt` |
-| **2** | CyberDyne Systems | `bob` | `bob123` | `admin` | `cyberdyne_skynet_defense_specs.txt` |
-| **3** | Initech | `charlie` | `charlie123` | `user` | `initech_payroll_master.txt` |
-
-*(Vous pouvez également créer de nouveaux tenants ou inscrire des utilisateurs via les routes d'API).*
-
----
-
-## ⚙️ Configuration & Sécurisation (.env)
-
-Avant de lancer l'application, configurez les variables d'environnement en copiant le fichier exemple :
-
+### 2. Configuration des variables d'environnement (`.env`)
+Copiez le modèle de configuration et définissez les secrets requis :
 ```bash
 cp .env.example .env
 ```
+Générez des clés cryptographiquement fortes (l'API refuse de démarrer si `JWT_SECRET` fait moins de 32 caractères) :
+```bash
+# Générer un secret JWT 256 bits et un mot de passe Postgres
+export JWT_SECRET=$(openssl rand -hex 32)
+export POSTGRES_PASSWORD=$(openssl rand -hex 16)
+export GRAFANA_ADMIN_PASSWORD=$(openssl rand -base64 18)
 
-### Procédure de génération des secrets obligatoires
-
-L'application refuse strictement de démarrer si `JWT_SECRET` est absent ou comporte moins de 32 caractères (256 bits d'entropie). 
-
-1. **Génération d'un secret JWT cryptographiquement fort (minimum 32 caractères) :**
-   ```bash
-   # Sous Linux / macOS / WSL / Git Bash :
-   openssl rand -hex 32
-
-   # Sous PowerShell :
-   [Convert]::ToHexString((1..32 | ForEach-Object { Get-Random -Minimum 0 -Maximum 256 }))
-
-   # Ou via Python :
-   python -c "import secrets; print(secrets.token_hex(32))"
-   ```
-
-2. **Génération d'un mot de passe fort pour PostgreSQL :**
-   ```bash
-   openssl rand -base64 24
-   ```
-
-3. **Génération d'un mot de passe fort pour Grafana (Observabilité) :**
-   ```bash
-   openssl rand -base64 24
-   ```
-
-Reportez ensuite les valeurs générées dans votre fichier `.env` :
-
-```env
-POSTGRES_USER=tenantguard
-POSTGRES_PASSWORD=<VOTRE_MOT_DE_PASSE_POSTGRES_GENERE>
-POSTGRES_DB=tenantguard_db
-DATABASE_URL=postgresql://tenantguard:<VOTRE_MOT_DE_PASSE_POSTGRES_GENERE>@db:5432/tenantguard_db
-
-JWT_SECRET=<VOTRE_SECRET_JWT_GENERE_MIN_32_CHARS>
-JWT_ALGORITHM=HS256
-UPLOAD_DIR=/app/uploads
-CHROMA_PERSIST_DIR=/app/chroma_data
-GEMINI_API_KEY=               # Laissez vide pour utiliser le mock LLM intégré, ou renseignez votre clé Gemini
-GEMINI_MODEL=gemini-1.5-flash
-
-# Observabilité (Loki / Grafana) - ports liés à 127.0.0.1 (localhost uniquement)
-GRAFANA_ADMIN_USER=admin
-GRAFANA_ADMIN_PASSWORD=<VOTRE_MOT_DE_PASSE_GRAFANA_GENERE>
+# Renseigner dans le fichier .env
+sed -i "s|^JWT_SECRET=.*|JWT_SECRET=${JWT_SECRET}|" .env
+sed -i "s|^POSTGRES_PASSWORD=.*|POSTGRES_PASSWORD=${POSTGRES_PASSWORD}|" .env
+sed -i "s|^GRAFANA_ADMIN_PASSWORD=.*|GRAFANA_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD}|" .env
 ```
 
----
+### 3. Lancement de la stack complète (Applicatif + Observabilité)
+```bash
+docker compose -f docker-compose.yml -f docker-compose.observability.yml up -d --build
+```
 
-## 📡 Présentation des Routes d'API (v0)
-
-### 1. Authentification & Gestion des Tenants (`/auth`)
-- `POST /auth/login` : Authentification et obtention d'un jeton JWT.
-- `POST /auth/register` : Inscription d'un nouvel utilisateur dans un tenant.
-- `GET /auth/me` : Consultation du profil utilisateur connecté.
-- `GET /auth/tenants` : Liste des tenants déclarés.
-- `POST /auth/tenants` : Création d'un nouveau tenant.
-
-### 2. Gestion des Documents (`/documents`)
-- `POST /documents/upload` : Téléversement multipart d'un document (indexé automatiquement dans ChromaDB).
-- `GET /documents` : Liste des documents (supporte le paramètre optionnel `?tenant_id=`).
-- `GET /documents/{id}` : Métadonnées d'un document spécifique.
-- `GET /documents/{id}/download` : Téléchargement du fichier binaire.
-- `DELETE /documents/{id}` : Suppression du document et de ses embeddings.
-
-### 3. Recherche et RAG Multi-Tenant (`/rag`)
-- `POST /rag/query` : Recherche sémantique dans ChromaDB et génération d'une réponse par LLM.
-  ```json
-  {
-    "query": "Quels sont les détails du projet confidentiel ?",
-    "tenant_id": 1,
-    "top_k": 3
-  }
-  ```
-- `GET /rag/stats` : Statistiques de la collection vectorielle ChromaDB.
+### 4. Accès aux interfaces et services
+- **API FastAPI (Swagger UI)** : [http://localhost:8000/docs](http://localhost:8000/docs)
+- **API Healthcheck** : [http://localhost:8000/health](http://localhost:8000/health)
+- **Dashboard Grafana (Détection & Alertes)** : [http://127.0.0.1:3000](http://127.0.0.1:3000)  
+  *(Identifiants : `admin` / valeur définie dans `GRAFANA_ADMIN_PASSWORD`)*
+- **API Loki (LogQL)** : [http://127.0.0.1:3100](http://127.0.0.1:3100)
+- **Récepteur Webhook d'Alertes** : [http://127.0.0.1:8088](http://127.0.0.1:8088)
 
 ---
 
-## 🧪 Exécution des Tests
+## 🔑 Comptes de Démonstration (Seed Initial)
 
-Les tests automatisés vérifient le démarrage de l'application, les routes principales ainsi que la présence effective des failles v0 :
+Au premier démarrage, la base de données PostgreSQL et ChromaDB sont automatiquement initialisées avec **3 tenants** et **3 utilisateurs pré-configurés** :
+
+| Tenant ID | Organisation | Identifiant (Username) | Mot de passe de démo | Rôle | Cas d'usage de test |
+|:---:|---|---|---|:---:|---|
+| **1** | Acme Corp | `alice` | `alice123` | `admin` | Compte cible pour le brute force, la prise de contrôle (ATO) et l'exfiltration |
+| **2** | CyberDyne Systems | `bob` | `bob123` | `admin` | Tenant victime pour les tests d'accès cross-tenant (IDOR/BOLA) |
+| **3** | Initech | `charlie` | `charlie123` | `user` | Utilisateur standard pour tester les restrictions de privilèges et uploads |
+
+> [!TIP]
+> Ces mots de passe sont réservés aux démonstrations locales et aux scripts automatisés. Les scripts de test exigent leur transmission explicite par variables d'environnement (`ALICE_PASSWORD`, `BOB_PASSWORD`, `CHARLIE_PASSWORD`).
+
+---
+
+## 🛡️ Matrice des Vulnérabilités & Remédiations (v0 → v1.0)
+
+L'ensemble des 8 vulnérabilités relevées lors du pentest de la v0 a été neutralisé dans la v1.0 :
+
+| Finding | Titre du Finding | Statut v1.0 | Mécanisme de Remédiation | Test Associé | Règle de Détection Grafana |
+|:---:|---|:---:|---|---|:---:|
+| **FINDING-01** | Weak JWT Secret | **Corrigé** | Validation stricte au démarrage (min. 32 caractères, entropie 256 bits). | `test_jwt_secret_enforced` | `BRUTE_FORCE_LOGIN` / `ACCOUNT_TAKEOVER_SUSPECT` |
+| **FINDING-02** | JWT No Expiration | **Corrigé** | Vérification stricte `verify_exp: True`, rejet HTTP 401 sur token expiré. | `test_expired_jwt_rejected` | `TOKEN_ABUSE_SUSPECT` |
+| **FINDING-03** | Cross-Tenant Document IDOR | **Corrigé** | Filtrage obligatoire sur `current_user.tenant_id`, retour HTTP 404 neutre. | `test_get_document_cross_tenant_forbidden_404` | `CROSS_TENANT_ACCESS` |
+| **FINDING-04** | Cross-Tenant Upload Assignment | **Corrigé** | Assignation automatique et immuable au tenant de l'utilisateur connecté. | `test_upload_document_isolated_to_own_tenant` | `UPLOAD_ANOMALY` |
+| **FINDING-05** | Insecure Upload & Path Traversal | **Corrigé** | Assainissement `os.path.basename`, stockage sous UUID, whitelist d'extensions, limite 10 Mo. | `test_path_traversal_filename_sanitized` | `UPLOAD_ANOMALY` |
+| **FINDING-06** | RAG Cross-Tenant Leakage | **Corrigé** | Filtre ChromaDB `where={"tenant_id": ...}` forcé et non surchargeable. | `test_rag_strict_tenant_isolation` | `CROSS_TENANT_ACCESS` / `EXFILTRATION_VOLUME` |
+| **FINDING-07** | RAG Prompt Injection | **Corrigé** | Délimiteurs XML/Markdown stricts et instructions système fermées. | `test_rag_delimiter_protection` | `EXFILTRATION_VOLUME` |
+| **FINDING-08** | Hardcoded Secrets in Config | **Corrigé** | Élimination des fallbacks dans le code et Compose, gate CI Gitleaks, plan de purge Git. | CI Job `Secrets (Gitleaks)` | N/A (Prévention CI/CD) |
+
+Pour l'analyse détaillée des vulnérabilités et les limites d'architecture :  
+👉 **Consultez [KNOWN_ISSUES_V0.md](KNOWN_ISSUES_V0.md)**.
+
+---
+
+## 🚨 Détection des Menaces & Réponse à Incident
+
+TenantGuard intègre une détection en temps réel basée sur Grafana Unified Alerting et le moteur de requêtes LogQL :
+- **7 règles d'alerte provisionnées en code** : Définies dans `config/grafana/provisioning/alerting/rules.yml`, mappées aux techniques MITRE ATT&CK (`T1110`, `T1110.004`, `T1078`, `T1190`, `T1105`, `T1528`, `T1530`).
+- **Tableau de bord de surveillance** : Vue d'ensemble pré-provisionnée `tenantguard-detection-overview`.
+- **Runbooks opérationnels** : Procédures de triage et d'escalade pas-à-pas documentées dans [`docs/runbooks/`](docs/runbooks/).
+- **Simulation d'incident & Post-Mortem** : Scénario d'intrusion en 4 phases chronologiques ([`scripts/run_incident.sh`](scripts/run_incident.sh)), investigation médico-légale LogQL ([`docs/incident/INVESTIGATION.md`](docs/incident/INVESTIGATION.md)), preuves de confinement réelles ([`docs/incident/CONTAINMENT_EVIDENCE.md`](docs/incident/CONTAINMENT_EVIDENCE.md)) et post-mortem blameless avec MTTD mesuré à **46,5 secondes** ([`docs/incident/POSTMORTEM.md`](docs/incident/POSTMORTEM.md)).
+
+Pour les détails des règles et requêtes LogQL :  
+👉 **Consultez [DETECTION.md](DETECTION.md)** et **[OBSERVABILITY.md](OBSERVABILITY.md)**.
+
+---
+
+## 🎬 Démonstration Autonome en Une Seule Commande
+
+Pour évaluer la plateforme en conditions réelles, exécutez le script de démonstration autonome :
 
 ```bash
-# Exécution locale avec pytest
+ALICE_PASSWORD=alice123 BOB_PASSWORD=bob123 CHARLIE_PASSWORD=charlie123 \
+GRAFANA_ADMIN_PASSWORD=secretgrafanapass123 \
+bash scripts/demo.sh
+```
+
+Ce script vérifie la santé des conteneurs, rejoue 3 scénarios d'attaque représentatifs (brute-force, accès cross-tenant et jeton expiré), interroge le récepteur d'alertes webhook pour afficher les alertes reçues, et fournit les liens directs d'investigation Grafana.
+
+---
+
+## 🧪 Exécution des Tests Automatisés
+
+```bash
+# Exécution de la suite complète de 25 tests dans le conteneur API
+docker compose exec api pytest -v
+
+# Ou en local (nécessite un environnement Python 3.11 avec pytest)
 pytest -v
 ```
 
 ---
 
-## 📁 Arborescence du Dépôt
+## 📚 Documentation Complète du Répertoire
 
-```
-tenantguard/
-├── README.md                 # Documentation principale du projet
-├── KNOWN_ISSUES_V0.md        # Catalogue officiel des vulnérabilités v0
-├── docker-compose.yml        # Orchestration PostgreSQL + API FastAPI
-├── Dockerfile                # Image conteneur Python 3.11
-├── requirements.txt          # Dépendances Python
-├── .env.example              # Variables d'environnement de référence
-├── .gitignore                # Exclusion des fichiers temporaires et données
-├── app/
-│   ├── main.py               # Point d'entrée FastAPI & cycle de vie
-│   ├── auth.py               # Gestion JWT (failles secret faible et verify_exp=False)
-│   ├── models.py             # Modèles SQLAlchemy (Tenant, User, Document)
-│   ├── database.py           # Connexion DB et fonction de seed automatique
-│   ├── logging_config.py     # Configuration des logs d'audit structurés
-│   ├── rag_service.py        # Service ChromaDB & intégration LLM (Gemini / Mock)
-│   └── routes/
-│       ├── auth.py           # Routes d'authentification et tenants
-│       ├── documents.py      # Routes de gestion de documents (failles BOLA & upload)
-│       └── rag.py            # Route de requête RAG (failles fuite & injection)
-└── tests/
-    ├── conftest.py           # Fixtures de test et environnement éphémère
-    ├── test_auth.py          # Tests d'authentification et validation de la faille JWT
-    ├── test_documents.py     # Tests de gestion documentaire et failles IDOR/upload
-    └── test_rag.py           # Tests RAG et vérification de la fuite cross-tenant
-```
-
----
-
-## 🚨 Détection des Menaces & Alerting (Grafana Unified Alerting)
-
-TenantGuard intègre un système de détection des menaces et d'alerting en temps réel, provisionné entièrement sous forme de code :
-- **Règles d'alerte Grafana Unified Alerting** : 7 règles de sécurité provisionnées dans `config/grafana/provisioning/alerting/` couvrant les attaques par force brute, le credential stuffing, les violations d'accès cross-tenant (IDOR/BOLA), les abus d'upload, le vol/rejeu de tokens, la prise de contrôle de compte (ATO) et l'exfiltration massive de données.
-- **Mapping MITRE ATT&CK** : Toutes les règles sont étiquetées avec leurs techniques MITRE ATT&CK (`T1110`, `T1110.004`, `T1078`, `T1190`, `T1105`, `T1528`, `T1530`) et leur sévérité.
-- **Tableau de bord de détection** : Dashboard Grafana pré-provisionné **Detection Overview** (`tenantguard-detection-overview`) avec vue d'ensemble des alertes actives, séries temporelles par sévérité, top IP attaquantes, top utilisateurs en violation cross-tenant et flux de logs d'audit.
-- **Récepteur d'alertes Webhook** : Micro-service local (`alert-receiver`) consignant les alertes HTTP POST au format JSON sur stdout.
-- **Runbooks de Réponse à Incident** : Chaque alerte pointe directement vers son guide de triage et de confinement dans [`docs/runbooks/`](docs/runbooks/).
-- **Simulation d'Attaques & Vérification** : Suite de simulation automatisée rejouant les vecteurs d'attaque et vérifiant le passage à l'état `Firing` de toutes les alertes. Aucun mot de passe par défaut n'est codé en dur dans les scripts ; les variables d'environnement sont obligatoires et leurs valeurs de démonstration correspondent au tableau des comptes de seed (`alice123`, `bob123`, `charlie123`) :
-  ```bash
-  ALICE_PASSWORD=alice123 BOB_PASSWORD=bob123 CHARLIE_PASSWORD=charlie123 \
-  GRAFANA_ADMIN_PASSWORD=secretgrafanapass123 \
-  bash scripts/verify_detections.sh
-  ```
-- **Simulation d'Incident Réaliste & Post-Mortem** : Scénario d'attaque complet de bout en bout en 4 phases chronologiques avec pauses réalistes pour Loki (`scripts/run_incident.sh`), investigation médico-légale et post-mortem blameless :
-  - **Script de simulation d'incident** : [`scripts/run_incident.sh`](scripts/run_incident.sh)
-  - **Rapport d'investigation médico-légale LogQL** : [`docs/incident/INVESTIGATION.md`](docs/incident/INVESTIGATION.md)
-  - **Preuves réelles de confinement** : [`docs/incident/CONTAINMENT_EVIDENCE.md`](docs/incident/CONTAINMENT_EVIDENCE.md)
-  - **Post-Mortem de sécurité blameless** : [`docs/incident/POSTMORTEM.md`](docs/incident/POSTMORTEM.md)
-
-- **Note DAST (CI/CD)** : Dans le workflow GitHub Actions, le job DAST OWASP ZAP Baseline se termine avec le code de sortie `2` (warnings passifs sur les en-têtes HTTP) et est configuré comme informatif.
-
-Pour la documentation complète des règles, des requêtes LogQL et des scénarios de réponse :  
-👉 **Consultez [DETECTION.md](DETECTION.md)**.
-
----
-
-## 🔐 Registre des Vulnérabilités (v0)
-
-Pour le détail des failles, leur criticité, leur localisation exacte et les vecteurs d'attaque :  
-👉 **Consultez [KNOWN_ISSUES_V0.md](KNOWN_ISSUES_V0.md)**.
+- **Étude de Cas Portfolio :** [`docs/PORTFOLIO.md`](docs/PORTFOLIO.md)
+- **Rapport d'Audit Initial (Pentest v0) :** [`pentest/report.md`](pentest/report.md) *(Lecture seule)*
+- **Matrice des Fautes & Limites v1 :** [`KNOWN_ISSUES_V0.md`](KNOWN_ISSUES_V0.md)
+- **Spécifications des Alertes & MITRE ATT&CK :** [`DETECTION.md`](DETECTION.md)
+- **Architecture d'Observabilité & LogQL :** [`OBSERVABILITY.md`](OBSERVABILITY.md)
+- **Dossier d'Incident & Post-Mortem :** [`docs/incident/`](docs/incident/)
+- **Inventaire des Secrets & Plan de Purge Git :** [`docs/HISTORY_PURGE.md`](docs/HISTORY_PURGE.md)
+- **Historique des Changements :** [`CHANGELOG.md`](CHANGELOG.md)
+- **Politique de Sécurité :** [`SECURITY.md`](SECURITY.md)
