@@ -102,7 +102,7 @@ To run the attack simulation and verify that all 7 detection rules enter the `Fi
 ALICE_PASSWORD=alice123 \
 BOB_PASSWORD=bob123 \
 CHARLIE_PASSWORD=charlie123 \
-GRAFANA_ADMIN_PASSWORD=secretgrafanapass123 \
+GRAFANA_ADMIN_PASSWORD=<votre-mot-de-passe> \
 bash scripts/verify_detections.sh
 ```
 

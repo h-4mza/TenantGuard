@@ -13,11 +13,11 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 BASE_URL="${BASE_URL:-http://localhost:8000}"
 GRAFANA_URL="${GRAFANA_URL:-http://127.0.0.1:3000}"
 GRAFANA_USER="${GRAFANA_ADMIN_USER:-admin}"
-GRAFANA_PASSWORD="${GRAFANA_ADMIN_PASSWORD:?set GRAFANA_ADMIN_PASSWORD in environment}"
+GRAFANA_ADMIN_PASSWORD="${GRAFANA_ADMIN_PASSWORD:?set GRAFANA_ADMIN_PASSWORD in environment}"
 ALICE_PASSWORD="${ALICE_PASSWORD:?set ALICE_PASSWORD in environment (see seed accounts table in README.md, e.g. alice123)}"
 BOB_PASSWORD="${BOB_PASSWORD:?set BOB_PASSWORD in environment (see seed accounts table in README.md, e.g. bob123)}"
 CHARLIE_PASSWORD="${CHARLIE_PASSWORD:?set CHARLIE_PASSWORD in environment (see seed accounts table in README.md, e.g. charlie123)}"
-export ALICE_PASSWORD BOB_PASSWORD CHARLIE_PASSWORD
+export ALICE_PASSWORD BOB_PASSWORD CHARLIE_PASSWORD GRAFANA_ADMIN_PASSWORD
 
 echo "=============================================================================="
 echo "🚀 1. Lancement de la simulation d'attaques..."
@@ -28,7 +28,7 @@ echo -e "\n=====================================================================
 echo "⏳ 2. Attente de l'évaluation des règles par Grafana (cycle d'évaluation 1m)..."
 echo "=============================================================================="
 
-export GRAFANA_URL GRAFANA_USER GRAFANA_PASSWORD PYTHONIOENCODING=utf-8
+export GRAFANA_URL GRAFANA_USER GRAFANA_ADMIN_PASSWORD PYTHONIOENCODING=utf-8
 
 python - << 'EOF'
 import os
@@ -43,7 +43,9 @@ if hasattr(sys.stdout, "reconfigure"):
 
 url = os.getenv("GRAFANA_URL", "http://127.0.0.1:3000") + "/api/prometheus/grafana/api/v1/rules"
 user = os.getenv("GRAFANA_USER", "admin")
-password = os.getenv("GRAFANA_PASSWORD", "secretgrafanapass123")
+password = os.getenv("GRAFANA_ADMIN_PASSWORD")
+if not password:
+    raise ValueError("GRAFANA_ADMIN_PASSWORD is not set in environment")
 auth_header = "Basic " + base64.b64encode(f"{user}:{password}".encode()).decode()
 
 expected_rules = [

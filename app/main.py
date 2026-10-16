@@ -96,7 +96,7 @@ def seed_sample_documents():
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Startup: Initialize Database & Seed
-    logger.info("Starting TenantGuard API (v0 - Intentionally Vulnerable)...")
+    logger.info("Starting TenantGuard API (v1.0 - Secured Multi-Tenant Architecture)...")
     init_db()
     seed_sample_documents()
     yield
@@ -106,14 +106,11 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(
     title="TenantGuard API",
-    version="0.1.0-v0",
+    version="1.0.0",
     description=(
-        "⚠️ **EDUCATIONAL SECURITY PORTFOLIO PROJECT (v0)** ⚠️\n\n"
-        "This application is **INTENTIONALLY VULNERABLE**.\n"
-        "It contains deliberate security flaws (Weak JWT, Cross-tenant IDOR/BOLA, "
-        "Arbitrary File Upload / Path Traversal, Guardless RAG Prompt Injection & Leakage).\n\n"
-        "Do NOT deploy this code in a production environment.\n"
-        "Refer to `KNOWN_ISSUES_V0.md` for the catalog of intentionally introduced vulnerabilities."
+        "TenantGuard API — Architecture multi-tenant sécurisée avec contrôle d'accès strict, "
+        "journalisation d'audit structurée et détection SIEM en quasi temps réel.\n\n"
+        "La version 1.0 est le résultat du durcissement documenté dans `KNOWN_ISSUES_V0.md`."
     ),
     lifespan=lifespan
 )
@@ -145,17 +142,18 @@ app.include_router(rag_router)
 def root():
     return {
         "project": "TenantGuard",
-        "phase": "v0 (Vulnerable Initial Release)",
+        "phase": "v1.0 (Secured & Hardened Release)",
+        "version": "1.0.0",
         "status": "online",
         "docs_url": "/docs",
-        "warning": "This application contains intentional vulnerabilities for cybersecurity portfolio testing."
+        "notice": "Version 1.0 sécurisée. Se référer à KNOWN_ISSUES_V0.md pour le catalogue de durcissement et les limites opérationnelles."
     }
 
 @app.get("/health", tags=["General"])
 def health_check():
     return {
         "status": "healthy",
-        "version": "v0",
+        "version": "1.0.0",
         "database": "connected",
         "chromadb": "ready"
     }

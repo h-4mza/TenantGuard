@@ -40,10 +40,10 @@ Partant d'une base délibérément vulnérable (v0) conçue pour la pédagogie e
 - 7 règles Grafana Unified Alerting provisionnées en code et évaluées chaque minute :
   - `BRUTE_FORCE_LOGIN` (MITRE T1110)
   - `CREDENTIAL_STUFFING` (MITRE T1110.004)
-  - `CROSS_TENANT_ACCESS` (MITRE T1078)
-  - `UPLOAD_ANOMALY` (MITRE T1105 / T1190)
-  - `TOKEN_ABUSE_SUSPECT` (MITRE T1528)
-  - `ACCOUNT_TAKEOVER_SUSPECT` (MITRE T1078)
+  - `CROSS_TENANT_ACCESS` (MITRE T1078 / T1190)
+  - `UPLOAD_ABUSE` (MITRE T1105)
+  - `TOKEN_ABUSE` (MITRE T1528)
+  - `ACCOUNT_TAKEOVER_SUSPECT` (MITRE T1110)
   - `EXFILTRATION_VOLUME` (MITRE T1530)
 - Tableau de bord pré-provisionné `Detection Overview` et récepteur d'alertes webhook local sur port 8088.
 
@@ -54,7 +54,7 @@ Partant d'une base délibérément vulnérable (v0) conçue pour la pédagogie e
 - Post-mortem blameless complet ([`docs/incident/POSTMORTEM.md`](docs/incident/POSTMORTEM.md)) et 7 runbooks opérationnels ([`docs/runbooks/`](docs/runbooks/)).
 
 ### 5. Traçabilité des Secrets Git & Démonstration Autonome
-- Inventaire complet de l'historique Git et plan de purge validé localement ([`docs/HISTORY_PURGE.md`](docs/HISTORY_PURGE.md)).
+- Inventaire complet de l'historique Git et acceptation des risques documentée avec baseline Gitleaks ([`docs/HISTORY_RISK_ACCEPTANCE.md`](docs/HISTORY_RISK_ACCEPTANCE.md)).
 - Script de démonstration autonome en une commande ([`scripts/demo.sh`](scripts/demo.sh)).
 
 ---

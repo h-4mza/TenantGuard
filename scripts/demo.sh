@@ -6,7 +6,7 @@
 # 3. Déclenchement de 3 scénarios d'attaque représentatifs :
 #    - Scénario A : Force brute d'authentification (BRUTE_FORCE_LOGIN)
 #    - Scénario B : Violation d'accès cross-tenant IDOR (CROSS_TENANT_ACCESS)
-#    - Scénario C : Rejeu de jeton expiré (TOKEN_ABUSE_SUSPECT)
+#    - Scénario C : Rejeu de jeton expiré (TOKEN_ABUSE)
 # 4. Attente du cycle d'évaluation Grafana et affichage des alertes reçues
 # 5. Instructions pour l'évaluateur (dashboard, runbooks, logs)
 # ==============================================================================
@@ -38,7 +38,7 @@ fi
 ALICE_PASSWORD="${ALICE_PASSWORD:?set ALICE_PASSWORD in environment (see seed accounts in README.md, e.g. alice123)}"
 BOB_PASSWORD="${BOB_PASSWORD:?set BOB_PASSWORD in environment (see seed accounts in README.md, e.g. bob123)}"
 CHARLIE_PASSWORD="${CHARLIE_PASSWORD:?set CHARLIE_PASSWORD in environment (see seed accounts in README.md, e.g. charlie123)}"
-GRAFANA_ADMIN_PASSWORD="${GRAFANA_ADMIN_PASSWORD:-secretgrafanapass123}"
+GRAFANA_ADMIN_PASSWORD="${GRAFANA_ADMIN_PASSWORD:?set GRAFANA_ADMIN_PASSWORD in environment}"
 
 echo "✅ Garde-fous localhost et variables d'environnement validés."
 
@@ -153,7 +153,7 @@ echo "==========================================================================
 echo "Accédez aux interfaces pour explorer les résultats :"
 echo "  1. 📊 Dashboard de Détection Grafana :"
 echo "     👉 $GRAFANA_URL/d/tenantguard-detection-overview"
-echo "     (Compte : admin / Mot de passe : $GRAFANA_ADMIN_PASSWORD)"
+echo "     (Compte : admin / Mot de passe : valeur de GRAFANA_ADMIN_PASSWORD)"
 echo ""
 echo "  2. 🔍 Investigation LogQL dans Grafana Explore :"
 echo "     👉 $GRAFANA_URL/explore"

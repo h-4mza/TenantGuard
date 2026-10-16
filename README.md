@@ -111,13 +111,13 @@ L'ensemble des 8 vulnérabilités relevées lors du pentest de la v0 a été neu
 | Finding | Titre du Finding | Statut v1.0 | Mécanisme de Remédiation | Test Associé | Règle de Détection Grafana |
 |:---:|---|:---:|---|---|:---:|
 | **FINDING-01** | Weak JWT Secret | **Corrigé** | Validation stricte au démarrage (min. 32 caractères, entropie 256 bits). | `test_jwt_secret_enforced` | `BRUTE_FORCE_LOGIN` / `ACCOUNT_TAKEOVER_SUSPECT` |
-| **FINDING-02** | JWT No Expiration | **Corrigé** | Vérification stricte `verify_exp: True`, rejet HTTP 401 sur token expiré. | `test_expired_jwt_rejected` | `TOKEN_ABUSE_SUSPECT` |
+| **FINDING-02** | JWT No Expiration | **Corrigé** | Vérification stricte `verify_exp: True`, rejet HTTP 401 sur token expiré. | `test_expired_jwt_rejected` | `TOKEN_ABUSE` |
 | **FINDING-03** | Cross-Tenant Document IDOR | **Corrigé** | Filtrage obligatoire sur `current_user.tenant_id`, retour HTTP 404 neutre. | `test_get_document_cross_tenant_forbidden_404` | `CROSS_TENANT_ACCESS` |
-| **FINDING-04** | Cross-Tenant Upload Assignment | **Corrigé** | Assignation automatique et immuable au tenant de l'utilisateur connecté. | `test_upload_document_isolated_to_own_tenant` | `UPLOAD_ANOMALY` |
-| **FINDING-05** | Insecure Upload & Path Traversal | **Corrigé** | Assainissement `os.path.basename`, stockage sous UUID, whitelist d'extensions, limite 10 Mo. | `test_path_traversal_filename_sanitized` | `UPLOAD_ANOMALY` |
+| **FINDING-04** | Cross-Tenant Upload Assignment | **Corrigé** | Assignation automatique et immuable au tenant de l'utilisateur connecté. | `test_upload_document_isolated_to_own_tenant` | `UPLOAD_ABUSE` |
+| **FINDING-05** | Insecure Upload & Path Traversal | **Corrigé** | Assainissement `os.path.basename`, stockage sous UUID, whitelist d'extensions, limite 10 Mo. | `test_path_traversal_filename_sanitized` | `UPLOAD_ABUSE` |
 | **FINDING-06** | RAG Cross-Tenant Leakage | **Corrigé** | Filtre ChromaDB `where={"tenant_id": ...}` forcé et non surchargeable. | `test_rag_strict_tenant_isolation` | `CROSS_TENANT_ACCESS` / `EXFILTRATION_VOLUME` |
 | **FINDING-07** | RAG Prompt Injection | **Corrigé** | Délimiteurs XML/Markdown stricts et instructions système fermées. | `test_rag_delimiter_protection` | `EXFILTRATION_VOLUME` |
-| **FINDING-08** | Hardcoded Secrets in Config | **Corrigé** | Élimination des fallbacks dans le code et Compose, gate CI Gitleaks, plan de purge Git. | CI Job `Secrets (Gitleaks)` | N/A (Prévention CI/CD) |
+| **FINDING-08** | Hardcoded Secrets in Config | **Corrigé** | Élimination des fallbacks dans le code et Compose, gate CI Gitleaks, acceptation documentée. | CI Job `Secrets (Gitleaks)` | N/A (Prévention CI/CD + Baseline) |
 
 Pour l'analyse détaillée des vulnérabilités et les limites d'architecture :  
 👉 **Consultez [KNOWN_ISSUES_V0.md](KNOWN_ISSUES_V0.md)**.
@@ -143,7 +143,7 @@ Pour évaluer la plateforme en conditions réelles, exécutez le script de démo
 
 ```bash
 ALICE_PASSWORD=alice123 BOB_PASSWORD=bob123 CHARLIE_PASSWORD=charlie123 \
-GRAFANA_ADMIN_PASSWORD=secretgrafanapass123 \
+GRAFANA_ADMIN_PASSWORD=<votre-mot-de-passe-grafana> \
 bash scripts/demo.sh
 ```
 
@@ -171,6 +171,6 @@ pytest -v
 - **Spécifications des Alertes & MITRE ATT&CK :** [`DETECTION.md`](DETECTION.md)
 - **Architecture d'Observabilité & LogQL :** [`OBSERVABILITY.md`](OBSERVABILITY.md)
 - **Dossier d'Incident & Post-Mortem :** [`docs/incident/`](docs/incident/)
-- **Inventaire des Secrets & Plan de Purge Git :** [`docs/HISTORY_PURGE.md`](docs/HISTORY_PURGE.md)
+- **Inventaire des Secrets & Acceptation du Risque :** [`docs/HISTORY_RISK_ACCEPTANCE.md`](docs/HISTORY_RISK_ACCEPTANCE.md)
 - **Historique des Changements :** [`CHANGELOG.md`](CHANGELOG.md)
 - **Politique de Sécurité :** [`SECURITY.md`](SECURITY.md)

@@ -10,7 +10,7 @@ Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/)
 ### Ajouté
 - **Bloc 7 — Finalisation & Portfolio :**
   - Durcissement de la CI DevSecOps : épinglage de `runs-on: ubuntu-24.04` sur les 6 jobs, épinglage strict des images Docker (`gitleaks:v8.30.1`, `trivy:0.76.0`) et migration des actions vers Node 24 avec SHAs vérifiés par l'API GitHub (`actions/checkout@v7.0.1`, `actions/setup-python@v7.0.0`, `anchore/sbom-action@v0.24.3`).
-  - Inventaire exhaustif des secrets de l'historique Git et plan de purge documenté et testé localement dans [`docs/HISTORY_PURGE.md`](docs/HISTORY_PURGE.md) (0 leak Gitleaks, tests passants).
+  - Inventaire exhaustif des secrets de l'historique Git et acceptation des risques documentée dans [`docs/HISTORY_RISK_ACCEPTANCE.md`](docs/HISTORY_RISK_ACCEPTANCE.md) avec baseline Gitleaks opérationnelle (0 leak Gitleaks).
   - Étude de cas structurée pour portfolio dans [`docs/PORTFOLIO.md`](docs/PORTFOLIO.md) avec métriques réelles et sources vérifiables.
   - Script de démonstration autonome de bout en bout [`scripts/demo.sh`](scripts/demo.sh) avec validation d'infrastructure et affichage des alertes.
   - Politique de sécurité [`SECURITY.md`](SECURITY.md) et notes de version [`RELEASE_NOTES.md`](RELEASE_NOTES.md).
@@ -23,7 +23,7 @@ Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/)
   - Runbooks de réponse à incident détaillés dans [`docs/runbooks/`](docs/runbooks/).
 
 - **Bloc 5 — Détection des Menaces & Grafana Unified Alerting :**
-  - Provisioning Infrastructure-as-Code des alertes Grafana dans `config/grafana/provisioning/alerting/` : 7 règles de détection évaluées chaque minute et mappées à MITRE ATT&CK (`BRUTE_FORCE_LOGIN`, `CREDENTIAL_STUFFING`, `CROSS_TENANT_ACCESS`, `UPLOAD_ANOMALY`, `TOKEN_ABUSE_SUSPECT`, `ACCOUNT_TAKEOVER_SUSPECT`, `EXFILTRATION_VOLUME`).
+  - Provisioning Infrastructure-as-Code des alertes Grafana dans `config/grafana/provisioning/alerting/` : 7 règles de détection évaluées chaque minute et mappées à MITRE ATT&CK (`BRUTE_FORCE_LOGIN`, `CREDENTIAL_STUFFING`, `CROSS_TENANT_ACCESS`, `UPLOAD_ABUSE`, `TOKEN_ABUSE`, `ACCOUNT_TAKEOVER_SUSPECT`, `EXFILTRATION_VOLUME`).
   - Tableau de bord de détection pré-provisionné `Detection Overview` (`tenantguard-detection-overview`).
   - Récepteur d'alertes webhook local (`tenantguard_alert_receiver`) sur port 8088.
   - Scripts de simulation d'attaque [`scripts/simulate_attacks.sh`](scripts/simulate_attacks.sh) et de vérification [`scripts/verify_detections.sh`](scripts/verify_detections.sh).
