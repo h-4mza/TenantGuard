@@ -18,7 +18,7 @@
 > **TenantGuard** illustre le cycle de vie complet de sécurisation d'une application SaaS multi-tenant intégrant un pipeline RAG (*Retrieval-Augmented Generation*).  
 > À partir d'une version initiale délibérément vulnérable (v0), la plateforme a fait l'objet d'un audit offensif documenté ([`pentest/report.md`](pentest/report.md)), d'une remédiation intégrale de son code applicatif (v1.0), de la mise en place d'un pipeline DevSecOps à gates bloquantes, d'une stack d'observabilité et d'audit structuré (Loki/Promtail), de 7 règles de détection provisionnées en code (Grafana Unified Alerting mappées à MITRE ATT&CK), et d'une simulation d'incident avec calcul du MTTD (46,5 secondes) et post-mortem blameless.  
 > 
-> Pour une synthèse complète conçue pour recruteurs et évaluateurs, consultez l'**[Étude de Cas Technique (PORTFOLIO.md)](docs/PORTFOLIO.md)**.
+> Pour une synthèse complète conçue pour recruteurs et évaluateurs, consultez l'**[Étude de Cas Technique (PORTFOLIO.md)](docs/PORTFOLIO.md)** ainsi que la **[Synthèse Exécutive de Sécurité (PDF)](docs/TenantGuard_Security_Summary.pdf)**.
 
 ---
 
@@ -180,6 +180,7 @@ pytest -v
 
 ## 📚 Documentation Complète du Répertoire
 
+- **Synthèse Exécutive de Sécurité (PDF) :** [`docs/TenantGuard_Security_Summary.pdf`](docs/TenantGuard_Security_Summary.pdf)
 - **Étude de Cas Portfolio :** [`docs/PORTFOLIO.md`](docs/PORTFOLIO.md)
 - **Rapport d'Audit Initial (Pentest v0) :** [`pentest/report.md`](pentest/report.md) *(Lecture seule)*
 - **Matrice des Fautes & Limites v1 :** [`KNOWN_ISSUES_V0.md`](KNOWN_ISSUES_V0.md)

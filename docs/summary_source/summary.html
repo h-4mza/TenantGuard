@@ -1,0 +1,611 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>TenantGuard — Synthèse Exécutive de Sécurité</title>
+<style>
+  @page {
+    size: A4 portrait;
+    margin: 12mm 14mm 12mm 14mm;
+  }
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    color: #1e293b;
+    background: #ffffff;
+    font-size: 8.5pt;
+    line-height: 1.35;
+  }
+  
+  .page {
+    width: 100%;
+    height: 272mm;
+    position: relative;
+    padding-bottom: 8mm;
+    page-break-after: always;
+    overflow: hidden;
+  }
+  .page:last-child {
+    page-break-after: avoid;
+  }
+  
+  .footer {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-top: 1px solid #cbd5e1;
+    padding-top: 3px;
+    font-size: 7.5pt;
+    color: #64748b;
+  }
+  
+  /* En-tête */
+  .header-container {
+    border-bottom: 2px solid #0f172a;
+    padding-bottom: 5px;
+    margin-bottom: 8px;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+  }
+  .header-title {
+    font-size: 15pt;
+    font-weight: 800;
+    color: #0f172a;
+    letter-spacing: -0.3px;
+  }
+  .header-subtitle {
+    font-size: 8.5pt;
+    font-weight: 600;
+    color: #0284c7;
+    margin-top: 1px;
+  }
+  .header-badge {
+    text-align: right;
+    font-size: 7.5pt;
+    font-weight: 600;
+    color: #475569;
+    background: #f1f5f9;
+    padding: 4px 8px;
+    border-radius: 4px;
+    border: 1px solid #e2e8f0;
+  }
+  
+  /* Fiche métadonnées */
+  .meta-grid {
+    display: grid;
+    grid-template-columns: 1.2fr 1fr 1fr;
+    gap: 6px;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 4px;
+    padding: 5px 8px;
+    margin-bottom: 8px;
+    font-size: 7.8pt;
+  }
+  .meta-item strong {
+    color: #334155;
+  }
+  
+  /* Sections */
+  .section-title {
+    font-size: 10pt;
+    font-weight: 700;
+    color: #0f172a;
+    border-left: 3px solid #0284c7;
+    padding-left: 6px;
+    margin: 8px 0 5px 0;
+    text-transform: uppercase;
+    letter-spacing: 0.2px;
+  }
+  
+  /* Encadré En bref */
+  .highlight-box {
+    background: #f0fdf4;
+    border: 1px solid #bbf7d0;
+    border-radius: 4px;
+    padding: 6px 10px;
+    margin-bottom: 8px;
+  }
+  .highlight-title {
+    font-size: 9pt;
+    font-weight: 700;
+    color: #166534;
+    margin-bottom: 3px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .highlight-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 4px 10px;
+    font-size: 8pt;
+  }
+  .highlight-item {
+    color: #14532d;
+  }
+  
+  /* Tableaux */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 7.8pt;
+    margin-top: 4px;
+  }
+  th {
+    background: #0f172a;
+    color: #ffffff;
+    font-weight: 600;
+    text-align: left;
+    padding: 4px 6px;
+    font-size: 7.6pt;
+  }
+  td {
+    padding: 4px 6px;
+    border-bottom: 1px solid #e2e8f0;
+    vertical-align: middle;
+  }
+  tr:nth-child(even) td {
+    background: #f8fafc;
+  }
+  
+  .badge {
+    display: inline-block;
+    padding: 1px 5px;
+    border-radius: 3px;
+    font-weight: 700;
+    font-size: 7pt;
+    text-align: center;
+  }
+  .badge-crit { background: #fee2e2; color: #991b1b; border: 1px solid #fecaca; }
+  .badge-high { background: #ffedd5; color: #c2410c; border: 1px solid #fed7aa; }
+  .badge-med { background: #fef3c7; color: #b45309; border: 1px solid #fde68a; }
+  .badge-fixed { background: #dcfce7; color: #166534; border: 1px solid #bbf7d0; }
+  
+  /* Page 2 Cards */
+  .finding-card {
+    border: 1px solid #cbd5e1;
+    border-radius: 5px;
+    background: #ffffff;
+    padding: 7px 9px;
+    margin-bottom: 8px;
+  }
+  .finding-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #e2e8f0;
+    padding-bottom: 4px;
+    margin-bottom: 6px;
+  }
+  .finding-title {
+    font-size: 9.5pt;
+    font-weight: 700;
+    color: #0f172a;
+  }
+  .finding-body {
+    display: grid;
+    grid-template-columns: 1.15fr 1fr;
+    gap: 8px;
+    align-items: start;
+  }
+  .finding-desc p {
+    margin-bottom: 5px;
+    font-size: 8pt;
+    text-align: justify;
+  }
+  .finding-desc strong {
+    color: #0f172a;
+  }
+  .finding-img-box {
+    border: 1px solid #94a3b8;
+    border-radius: 3px;
+    background: #0f172a;
+    padding: 2px;
+    text-align: center;
+  }
+  .finding-img-box img {
+    max-width: 100%;
+    max-height: 80mm;
+    display: block;
+    border-radius: 2px;
+  }
+  .finding-caption {
+    font-size: 7pt;
+    color: #64748b;
+    margin-top: 2px;
+    font-style: italic;
+    text-align: center;
+  }
+  
+  /* Page 3 Schema */
+  .arch-flow {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #f8fafc;
+    border: 1px solid #cbd5e1;
+    border-radius: 4px;
+    padding: 7px 10px;
+    margin-bottom: 8px;
+  }
+  .arch-step {
+    background: #ffffff;
+    border: 1px solid #94a3b8;
+    border-radius: 4px;
+    padding: 4px 7px;
+    text-align: center;
+    font-size: 7.5pt;
+    font-weight: 600;
+    color: #0f172a;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+  }
+  .arch-step small {
+    display: block;
+    font-size: 6.8pt;
+    color: #64748b;
+    font-weight: normal;
+  }
+  .arch-arrow {
+    color: #0284c7;
+    font-weight: 800;
+    font-size: 9pt;
+  }
+  
+  .metric-band {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 8px;
+  }
+  .metric-card {
+    flex: 1;
+    background: #eff6ff;
+    border: 1px solid #bfdbfe;
+    border-radius: 4px;
+    padding: 6px 8px;
+    text-align: center;
+  }
+  .metric-val {
+    font-size: 13pt;
+    font-weight: 800;
+    color: #1d4ed8;
+  }
+  .metric-label {
+    font-size: 7.2pt;
+    color: #1e40af;
+    font-weight: 600;
+    text-transform: uppercase;
+  }
+  
+  .limits-box {
+    background: #fffbeb;
+    border: 1px solid #fde68a;
+    border-radius: 4px;
+    padding: 6px 9px;
+    font-size: 7.6pt;
+    color: #78350f;
+  }
+  .limits-box strong {
+    color: #92400e;
+  }
+  .limits-list {
+    margin-left: 14px;
+    margin-top: 3px;
+  }
+  .limits-list li {
+    margin-bottom: 2px;
+  }
+</style>
+</head>
+<body>
+
+<!-- ================= PAGE 1 ================= -->
+<div class="page">
+  <div class="header-container">
+    <div>
+      <div class="header-title">TenantGuard 🛡️ — Synthèse Exécutive de Sécurité</div>
+      <div class="header-subtitle">Rapport de posture, remédiation technique et surveillance opérationnelle</div>
+    </div>
+    <div class="header-badge">
+      Version 1.0 (Durcie)<br>16 Octobre 2026
+    </div>
+  </div>
+
+  <div class="meta-grid">
+    <div class="meta-item"><strong>Périmètre :</strong> Application SaaS multi-tenant RAG (API FastAPI, PostgreSQL, ChromaDB)</div>
+    <div class="meta-item"><strong>Environnement :</strong> Audit local contrôlé (<code>localhost:8000</code>)</div>
+    <div class="meta-item"><strong>Classification :</strong> Synthèse managériale interne</div>
+  </div>
+
+  <div class="section-title">1. Contexte du Projet & Objectifs</div>
+  <p style="font-size: 8.2pt; color: #334155; margin-bottom: 6px; text-align: justify;">
+    TenantGuard illustre la démarche complète de sécurisation d'une plateforme SaaS multi-tenant combinant données relationnelles et moteur d'intelligence artificielle RAG (Retrieval-Augmented Generation). Développée initialement avec des vulnérabilités critiques délibérées (v0), la solution a fait l'objet d'un audit de sécurité offensif complet selon les méthodologies reconnues OWASP. Une refonte architecturale approfondie a permis de neutraliser l'ensemble des failles identifiées au sein de la version durcie (v1.0), assurant un cloisonnement étanche entre clients. La résilience du système est aujourd'hui pérennisée par un pipeline DevSecOps automatisé à contrôles bloquants et une surveillance SIEM en quasi temps réel.
+  </p>
+
+  <div class="highlight-box">
+    <div class="highlight-title">📌 En Bref : Indicateurs Clés de l'Évaluation</div>
+    <div class="highlight-grid">
+      <div class="highlight-item">• <strong>8 vulnérabilités identifiées en v0 :</strong> 2 critiques, 5 élevées, 1 moyenne.</div>
+      <div class="highlight-item">• <strong>8 remédiations validées en v1.0 :</strong> 100 % des failles corrigées.</div>
+      <div class="highlight-item">• <strong>25 tests automatisés au vert :</strong> Couverture unitaire et d'intégration.</div>
+      <div class="highlight-item">• <strong>6 portes DevSecOps en CI :</strong> SAST, SCA, Secrets, Conteneur, DAST, SBOM.</div>
+      <div class="highlight-item">• <strong>7 règles de détection d'intrusion :</strong> Unified Alerting sous Grafana/Loki.</div>
+      <div class="highlight-item">• <strong>MTTD mesuré à 46,5 s :</strong> Temps moyen de détection validé en incident réel.</div>
+    </div>
+  </div>
+
+  <div class="section-title">2. Registre Consolidé des Vulnérabilités (v0 → v1.0)</div>
+  <table>
+    <thead>
+      <tr>
+        <th style="width: 14%;">ID</th>
+        <th style="width: 38%;">Vulnérabilité Constatée</th>
+        <th style="width: 22%;">Composant / Route</th>
+        <th style="width: 12%; text-align: center;">CVSS v3.1</th>
+        <th style="width: 14%; text-align: center;">Statut v1.0</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>FINDING-01</strong></td>
+        <td>Clé de signature JWT faible (cassable par dictionnaire)</td>
+        <td><code>POST /auth/login</code></td>
+        <td style="text-align: center;"><span class="badge badge-crit">9.1 Critique</span></td>
+        <td style="text-align: center;"><span class="badge badge-fixed">Corrigé & Vérifié</span></td>
+      </tr>
+      <tr>
+        <td><strong>FINDING-08</strong></td>
+        <td>Identifiants maîtres et secrets codés en dur dans la configuration</td>
+        <td><code>docker-compose.yml</code></td>
+        <td style="text-align: center;"><span class="badge badge-crit">9.1 Critique</span></td>
+        <td style="text-align: center;"><span class="badge badge-fixed">Corrigé & Vérifié</span></td>
+      </tr>
+      <tr>
+        <td><strong>FINDING-03</strong></td>
+        <td>BOLA / IDOR cross-tenant sur consultation et téléchargement</td>
+        <td><code>GET /documents/*</code></td>
+        <td style="text-align: center;"><span class="badge badge-high">8.8 Élevé</span></td>
+        <td style="text-align: center;"><span class="badge badge-fixed">Corrigé & Vérifié</span></td>
+      </tr>
+      <tr>
+        <td><strong>FINDING-05</strong></td>
+        <td>Téléversement non restreint et traversée de répertoire (Path Traversal)</td>
+        <td><code>POST /documents/upload</code></td>
+        <td style="text-align: center;"><span class="badge badge-high">8.8 Élevé</span></td>
+        <td style="text-align: center;"><span class="badge badge-fixed">Corrigé & Vérifié</span></td>
+      </tr>
+      <tr>
+        <td><strong>FINDING-02</strong></td>
+        <td>Absence de vérification d'expiration des jetons JWT</td>
+        <td><code>app/auth.py</code></td>
+        <td style="text-align: center;"><span class="badge badge-high">7.1 Élevé</span></td>
+        <td style="text-align: center;"><span class="badge badge-fixed">Corrigé & Vérifié</span></td>
+      </tr>
+      <tr>
+        <td><strong>FINDING-04</strong></td>
+        <td>Assignation arbitraire du tenant lors du téléversement de fichier</td>
+        <td><code>POST /documents/upload</code></td>
+        <td style="text-align: center;"><span class="badge badge-high">7.1 Élevé</span></td>
+        <td style="text-align: center;"><span class="badge badge-fixed">Corrigé & Vérifié</span></td>
+      </tr>
+      <tr>
+        <td><strong>FINDING-07</strong></td>
+        <td>Absence de garde-fous contre l'injection de prompt LLM</td>
+        <td><code>POST /rag/query</code></td>
+        <td style="text-align: center;"><span class="badge badge-high">7.1 Élevé</span></td>
+        <td style="text-align: center;"><span class="badge badge-fixed">Corrigé & Vérifié</span></td>
+      </tr>
+      <tr>
+        <td><strong>FINDING-06</strong></td>
+        <td>Fuite vectorielle inter-entreprises dans le moteur de recherche RAG</td>
+        <td><code>POST /rag/query</code></td>
+        <td style="text-align: center;"><span class="badge badge-med">6.5 Moyen</span></td>
+        <td style="text-align: center;"><span class="badge badge-fixed">Corrigé & Vérifié</span></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="footer">
+    <span>Projet éducatif - dépôt public : github.com/h-4mza/TenantGuard - v1.0</span>
+    <span>Page 1 / 3</span>
+  </div>
+</div>
+
+<!-- ================= PAGE 2 ================= -->
+<div class="page">
+  <div class="header-container">
+    <div>
+      <div class="header-title">Focus Risques Métier & Preuves d'Exploitation</div>
+      <div class="header-subtitle">Illustrations concrètes des ruptures d'étanchéité multi-tenant et des remédiations appliquées</div>
+    </div>
+    <div class="header-badge">
+      Preuves Pentest<br>Page 2 / 3
+    </div>
+  </div>
+
+  <div class="section-title">Cas n°1 : BOLA / IDOR Cross-Tenant sur les Documents (FINDING-03)</div>
+  <div class="finding-card">
+    <div class="finding-header">
+      <div class="finding-title">Accès direct et téléchargement de documents confidentiels concurrents</div>
+      <span class="badge badge-high">CVSS 8.8 — Sévérité Élevée</span>
+    </div>
+    <div class="finding-body">
+      <div class="finding-desc">
+        <p>
+          <strong>Risque Métier :</strong><br>
+          Une défaillance dans le contrôle d'accès aux identifiants numériques de documents permettait à tout utilisateur d'une organisation cliente de consulter et télécharger l'intégralité des fichiers privés des entreprises concurrentes. Cette faille provoquait une rupture directe du secret des affaires et un risque réglementaire sévère au titre du RGPD et de NIS2.
+        </p>
+        <p>
+          <strong>Correctif Technique Appliqué :</strong><br>
+          Le filtrage des requêtes SQL a été strictement refondu côté serveur pour restreindre les opérations au <code>tenant_id</code> extrait du jeton JWT cryptographique de la session. Toute tentative d'accès à un document tiers retourne systématiquement un code neutre HTTP 404 (non trouvé) pour supprimer tout oracle d'énumération, tout en générant un journal d'audit de sécurité.
+        </p>
+      </div>
+      <div>
+        <div class="finding-img-box">
+          <img src="images/finding_03_idor.png" alt="Preuve de téléchargement illégitime document CyberDyne">
+        </div>
+        <div class="finding-caption">Figure 1 : Contenu confidentiel du tenant CyberDyne téléchargé par un utilisateur du tenant Acme Corp en v0.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section-title">Cas n°2 : Fuite Vectorielle Inter-Entreprises dans le Moteur RAG (FINDING-06)</div>
+  <div class="finding-card">
+    <div class="finding-header">
+      <div class="finding-title">Agrégation omni-tenant et extraction de secrets via l'assistant IA</div>
+      <span class="badge badge-med">CVSS 6.5 — Sévérité Moyenne</span>
+    </div>
+    <div class="finding-body">
+      <div class="finding-desc">
+        <p>
+          <strong>Risque Métier :</strong><br>
+          L'absence de filtrage obligatoire par organisation dans le moteur sémantique permettait à une requête RAG d'agréger et d'extraire des segments documentaires sensibles appartenant à l'ensemble des clients hébergés. Cette faiblesse détruisait l'étanchéité de la base vectorielle, transformant l'assistant IA en vecteur involontaire d'espionnage industriel entre tenants.
+        </p>
+        <p>
+          <strong>Correctif Technique Appliqué :</strong><br>
+          Le paramètre client désignant l'organisation a été supprimé des requêtes et remplacé par une assignation serveur inviolable issue de la session authentifiée. La base vectorielle (ChromaDB) applique un filtre obligatoire et non surchargeable garantissant qu'aucun fragment documentaire tiers n'est extrait ni injecté dans le contexte du modèle de langage.
+        </p>
+      </div>
+      <div>
+        <div class="finding-img-box">
+          <img src="images/finding_06_rag_leak.png" alt="Preuve fuite vectorielle RAG omni-tenant">
+        </div>
+        <div class="finding-caption">Figure 2 : Réponse RAG en v0 agrégeant simultanément les secrets d'Acme Corp (tenant 1) et de NovaTech (tenant 5).</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer">
+    <span>Projet éducatif - dépôt public : github.com/h-4mza/TenantGuard - v1.0</span>
+    <span>Page 2 / 3</span>
+  </div>
+</div>
+
+<!-- ================= PAGE 3 ================= -->
+<div class="page">
+  <div class="header-container">
+    <div>
+      <div class="header-title">Détection, Réponse à Incident & Limites Opérationnelles</div>
+      <div class="header-subtitle">Supervision SIEM en quasi temps réel, métriques de réaction et périmètre résiduel</div>
+    </div>
+    <div class="header-badge">
+      Surveillance SOC<br>Page 3 / 3
+    </div>
+  </div>
+
+  <div class="section-title">1. Chaîne d'Observabilité et de Détection des Menaces</div>
+  <div class="arch-flow">
+    <div class="arch-step">API FastAPI<small>Logs JSON stdout</small></div>
+    <div class="arch-arrow">➔</div>
+    <div class="arch-step">Promtail 3.0<small>Collecte conteneurs</small></div>
+    <div class="arch-arrow">➔</div>
+    <div class="arch-step">Loki 3.0<small>Indexation LogQL</small></div>
+    <div class="arch-arrow">➔</div>
+    <div class="arch-step">Grafana 11<small>Unified Alerting</small></div>
+    <div class="arch-arrow">➔</div>
+    <div class="arch-step">Alert Receiver<small>Webhook SOC (8088)</small></div>
+  </div>
+
+  <div class="section-title">2. Matrice des 7 Règles d'Alerte Provisionnées (Grafana Alerting)</div>
+  <table>
+    <thead>
+      <tr>
+        <th style="width: 25%;">Règle d'Alerte</th>
+        <th style="width: 28%;">Technique MITRE ATT&CK</th>
+        <th style="width: 12%; text-align: center;">Sévérité</th>
+        <th style="width: 35%;">Condition de Déclenchement</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><code>BRUTE_FORCE_LOGIN</code></td>
+        <td>T1110 (Brute Force)</td>
+        <td style="text-align: center;"><span class="badge badge-high">High</span></td>
+        <td>&ge; 5 échecs de connexion sur une même IP en 5 min</td>
+      </tr>
+      <tr>
+        <td><code>CREDENTIAL_STUFFING</code></td>
+        <td>T1110.004 (Credential Stuffing)</td>
+        <td style="text-align: center;"><span class="badge badge-high">High</span></td>
+        <td>&ge; 3 comptes distincts visés en échec depuis une IP en 5 min</td>
+      </tr>
+      <tr>
+        <td><code>CROSS_TENANT_ACCESS</code></td>
+        <td>T1078 / T1190 (IDOR / BOLA)</td>
+        <td style="text-align: center;"><span class="badge badge-crit">Critical</span></td>
+        <td>&ge; 3 accès refusés (HTTP 404) sur documents tiers en 5 min</td>
+      </tr>
+      <tr>
+        <td><code>UPLOAD_ABUSE</code></td>
+        <td>T1105 (Ingress Tool Transfer)</td>
+        <td style="text-align: center;"><span class="badge badge-med">Medium</span></td>
+        <td>&ge; 5 téléversements de fichiers par un même tenant en 5 min</td>
+      </tr>
+      <tr>
+        <td><code>TOKEN_ABUSE</code></td>
+        <td>T1528 (Steal Application Access Token)</td>
+        <td style="text-align: center;"><span class="badge badge-high">High</span></td>
+        <td>&ge; 3 jetons JWT expirés réutilisés en 5 min</td>
+      </tr>
+      <tr>
+        <td><code>ACCOUNT_TAKEOVER_SUSPECT</code></td>
+        <td>T1110 (Account Takeover)</td>
+        <td style="text-align: center;"><span class="badge badge-crit">Critical</span></td>
+        <td>Échecs répétés suivis d'un succès sur le même compte (fenêtre 10 min)</td>
+      </tr>
+      <tr>
+        <td><code>EXFILTRATION_VOLUME</code></td>
+        <td>T1530 (Data from Cloud Storage)</td>
+        <td style="text-align: center;"><span class="badge badge-med">Medium</span></td>
+        <td>&ge; 15 consultations ou téléchargements de documents en 5 min</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="section-title">3. Efficacité de la Réaction lors de l'Incident Simulé</div>
+  <div class="metric-band">
+    <div class="metric-card">
+      <div class="metric-val">46,5 s</div>
+      <div class="metric-label">MTTD Moyen Mesuré</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-val">24 s</div>
+      <div class="metric-label">Détection Mouvement Latéral</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-val">100 %</div>
+      <div class="metric-label">Accès Cross-Tenant Bloqués</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-val">2 Mesures</div>
+      <div class="metric-label">Confinement Réel Éprouvé</div>
+    </div>
+  </div>
+
+  <div class="section-title">4. Limites Connues de la Version 1.0 & Travaux Futurs</div>
+  <div class="limits-box">
+    <strong>Périmètre et limites opérationnelles documentées en toute transparence :</strong>
+    <ul class="limits-list">
+      <li><strong>Couverture d'audit partiel (ACT-03 / ACT-04) :</strong> Les requêtes avec jeton à signature altérée (<code>jwt.InvalidTokenError</code>) ou non authentifiées sont bloquées en HTTP 401 avec un log standard mais sans émission d'événement d'audit structuré JSON (seule l'expiration produit <code>AUTH_TOKEN_EXPIRED</code>).</li>
+      <li><strong>Requête RAG unitaire isolée :</strong> Une extraction sémantique hostile unique n'atteint aucun seuil volumétrique et ne déclenche pas d'alerte Grafana en l'état (seuls les téléchargements et consultations massifs en rafale déclenchent <code>EXFILTRATION_VOLUME</code>).</li>
+      <li><strong>Traçabilité réseau en environnement de production :</strong> La capture d'IP s'appuie sur <code>request.client.host</code>. En DMZ derrière un reverse proxy ou un équilibreur de charge, une configuration explicite des en-têtes <code>X-Forwarded-For</code> est indispensable pour éviter de journaliser l'IP de la passerelle.</li>
+    </ul>
+  </div>
+
+  <div class="footer">
+    <span>Projet éducatif - dépôt public : github.com/h-4mza/TenantGuard - v1.0</span>
+    <span>Page 3 / 3</span>
+  </div>
+</div>
+
+</body>
+</html>
