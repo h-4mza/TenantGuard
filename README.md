@@ -9,6 +9,10 @@
 [![Grafana](https://img.shields.io/badge/observability-Grafana_11-F46800.svg)](https://grafana.com/)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
+> [!WARNING]
+> **Avertissement — Projet Éducatif & Historique d'Audit :**  
+> Ce dépôt est un projet éducatif et un cas d'étude technique. La version initiale (v0), délibérément vulnérable, ainsi que l'ensemble des preuves de concept issues du pentest initial restent conservées dans l'historique Git et dans le dossier [`pentest/`](pentest/) à des fins didactiques et de traçabilité. Ne déployez pas ce code tel quel dans un environnement de production réel.
+
 > [!NOTE]
 > **Cas d'étude technique & Portfolio :**  
 > **TenantGuard** illustre le cycle de vie complet de sécurisation d'une application SaaS multi-tenant intégrant un pipeline RAG (*Retrieval-Augmented Generation*).  
@@ -160,6 +164,17 @@ docker compose exec api pytest -v
 # Ou en local (nécessite un environnement Python 3.11 avec pytest)
 pytest -v
 ```
+
+---
+
+## ⚠️ Limites Connues de la v1.0
+
+1. **Événements d'audit non implémentés (`AUTH_TOKEN_INVALID` et `AUTH_UNAUTHENTICATED_ACCESS`) :**  
+   Dans `app/auth.py`, seule l'exception `jwt.ExpiredSignatureError` émet un événement d'audit structuré JSON (`AUTH_TOKEN_EXPIRED`). Les jetons altérés ou falsifiés levant `jwt.InvalidTokenError` sont rejetés en HTTP 401 avec un log applicatif standard sans audit structuré JSON, et les requêtes HTTP non authentifiées (`AUTH_UNAUTHENTICATED_ACCESS`) sont interceptées en amont sans générer d'événement JSON.
+2. **Absence de règle d'alerte pour une requête RAG isolée :**  
+   Une extraction RAG unitaire légitime ou hostile n'atteint aucun seuil volumétrique et ne déclenche pas d'alerte Grafana en l'état (seuls les accès documentaires en rafale déclenchent `EXFILTRATION_VOLUME`).
+3. **Capture d'adresse IP derrière reverse proxy :**  
+   L'application utilise nativement `request.client.host`. Dans un déploiement derrière un reverse proxy ou un ingress controller, une configuration explicite des en-têtes `X-Forwarded-For` est requise pour éviter de journaliser l'adresse IP de la passerelle.
 
 ---
 

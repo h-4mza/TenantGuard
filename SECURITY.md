@@ -27,9 +27,8 @@ Si vous découvrez une faille de sécurité ou une faiblesse imprévue dans l'ar
 
 ### Procédure de divulgation coordonnée :
 1. **Ne pas ouvrir d'issue publique** : Pour éviter l'exposition d'utilisateurs potentiels ou de démonstrateurs, ne créez pas de ticket GitHub public contenant des détails d'exploitation.
-2. **Contact de signalement** :
-   - Envoyez un e-mail détaillé à l'adresse de contact du mainteneur : `CCN@ucd.ac.ma`
-   - Ou utilisez le formulaire de signalement de vulnérabilité privé de GitHub (*Security Advisory*) disponible dans l'onglet **Security** du dépôt.
+2. **Signalement privé GitHub** :
+   - Utilisez exclusivement la fonctionnalité de signalement de vulnérabilité privé de GitHub accessible via l'onglet **Security > Report a vulnerability** du dépôt GitHub. Cela permet d'échanger de manière confidentielle et chiffrée avec le mainteneur sans exposer de détails techniques publiquement.
 3. **Contenu recommandé du rapport** :
    - Description précise de la vulnérabilité et de son impact potentiel.
    - Étapes de reproduction détaillées ou script de preuve de concept (PoC).

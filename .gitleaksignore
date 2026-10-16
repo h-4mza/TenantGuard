@@ -53,9 +53,3 @@ KNOWN_ISSUES_V0.md:generic-api-key:26
 KNOWN_ISSUES_V0.md:generic-api-key:31
 /repo/KNOWN_ISSUES_V0.md:generic-api-key:31
 
-# ------------------------------------------------------------------------------
-# Documentation : Journal des remédiations techniques (CHANGELOG_BLOC3.md)
-# Historique des correctifs documentant les secrets révoqués et corrigés.
-# ------------------------------------------------------------------------------
-CHANGELOG_BLOC3.md:generic-api-key:23
-/repo/CHANGELOG_BLOC3.md:generic-api-key:23

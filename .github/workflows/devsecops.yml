@@ -2,8 +2,7 @@ name: DevSecOps Pipeline
 
 # ==============================================================================
 # Pipeline DevSecOps TenantGuard — GitHub Actions
-# Portage du pipeline GitLab CI d'origine (.gitlab-ci.yml) vers GitHub Actions,
-# car le dépôt est hébergé sur GitHub (GitHub ne lit jamais .gitlab-ci.yml).
+# Pipeline de sécurité automatisé pour le dépôt TenantGuard sur GitHub Actions.
 #
 # 6 étapes : SAST (Semgrep), SCA (pip-audit), Secrets (Gitleaks),
 # Build + Scan image (Trivy), DAST (OWASP ZAP), SBOM (Syft).
