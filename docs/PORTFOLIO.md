@@ -94,7 +94,7 @@ Un scénario d'intrusion réaliste a été joué sur la stack au moyen d'un scri
 
 | Phase d'Attaque | Horodatage (UTC) | Actions Jouées dans l'Incident | Détectée ? | Règles d'Alerte Déclenchées / Cause de Non-Détection |
 |---|:---:|---|:---:|---|
-| **Phase 1 : Reconnaissance** | `12:03:00Z` - `12:03:40Z` | Sondage `/health` et énumération non authentifiée sur `/documents` (HTTP 401). | ❌ **Non** | **Angle mort d'audit** : Les requêtes HTTP non authentifiées sont interceptées sans émission d'événement d'audit JSON. |
+| **Phase 1 : Reconnaissance** | `12:03:41Z` - `12:03:44Z`<br>*(horodatage du script, aucun événement d'audit)* | Sondage `/health` et énumération non authentifiée sur `/documents` (HTTP 401). | ❌ **Non** | **Angle mort d'audit** : Les requêtes HTTP non authentifiées sont interceptées sans émission d'événement d'audit JSON. |
 | **Phase 2 : Accès Initial** | `12:03:59Z` - `12:04:02Z` | 5 échecs `AUTH_LOGIN_FAILED` sur `alice`, suivis d'un succès `AUTH_LOGIN_SUCCESS`. | ✅ **Oui** | `BRUTE_FORCE_LOGIN` (High, déclenchée à `12:04:50Z`) et `ACCOUNT_TAKEOVER_SUSPECT` (Critical, déclenchée à `12:04:50Z`). |
 | **Phase 3 : Mouvement Latéral** | `12:04:26Z` | 4 requêtes `GET /documents/3` (document CyberDyne) bloquées avec rejet HTTP 404. | ✅ **Oui** | `CROSS_TENANT_ACCESS` (Critical, déclenchée à `12:04:50Z`). |
 | **Phase 4 : Collecte & Exfiltration** | `12:04:47Z` - `12:04:52Z` | 22 accès documentaires en rafale sur doc 2 (`12:04:47Z`-`12:04:50Z`), puis 1 question RAG (`12:04:52Z`). | ⚠️ **Partielle** | • **Détectée** : `EXFILTRATION_VOLUME` (Medium, déclenchée à `12:05:50Z` suite aux 22 accès).<br>• **Non détectée** : La requête RAG unitaire n'atteint aucun seuil d'alerte volumétrique. |
